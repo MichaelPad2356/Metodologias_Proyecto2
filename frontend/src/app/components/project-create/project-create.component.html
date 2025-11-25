@@ -1,0 +1,136 @@
+<div class="project-create-container">
+  <header class="page-header">
+    <h1>Crear Nuevo Proyecto OpenUP</h1>
+  </header>
+
+  <div class="card">
+    <form (ngSubmit)="onSubmit()" #projectForm="ngForm">
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
+
+      <div class="form-section">
+        <h3>Información Básica</h3>
+
+        <div class="form-group">
+          <label for="name">
+            Nombre del Proyecto <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="formData.name"
+            required
+            maxlength="200"
+            placeholder="Ej: Sistema de Gestión de Proyectos"
+            [disabled]="loading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="code">
+            Código del Proyecto <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="code"
+            name="code"
+            [(ngModel)]="formData.code"
+            required
+            maxlength="50"
+            placeholder="Ej: PROJ-2025-001"
+            [disabled]="loading"
+          />
+          <small class="form-hint">Debe ser único en el sistema</small>
+        </div>
+
+        <div class="form-group">
+          <label for="startDate">
+            Fecha de Inicio <span class="required">*</span>
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            [(ngModel)]="formData.startDate"
+            required
+            [disabled]="loading"
+          />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Información Adicional</h3>
+
+        <div class="form-group">
+          <label for="responsiblePerson">Responsable del Proyecto</label>
+          <input
+            type="text"
+            id="responsiblePerson"
+            name="responsiblePerson"
+            [(ngModel)]="formData.responsiblePerson"
+            maxlength="200"
+            placeholder="Nombre del coordinador o responsable"
+            [disabled]="loading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="description">Descripción</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="formData.description"
+            rows="4"
+            maxlength="1000"
+            placeholder="Describe el objetivo y alcance del proyecto..."
+            [disabled]="loading"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Etiquetas</label>
+          <input
+            type="text"
+            id="tags"
+            name="tags"
+            [(ngModel)]="formData.tags"
+            maxlength="500"
+            placeholder="Ej: backend, frontend, web, mobile"
+            [disabled]="loading"
+          />
+          <small class="form-hint">Separa las etiquetas con comas</small>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>ℹ️ Nota:</strong> Al crear el proyecto, se generarán automáticamente las cuatro fases de OpenUP:
+        <ul>
+          <li>Incepción</li>
+          <li>Elaboración</li>
+          <li>Construcción</li>
+          <li>Transición</li>
+        </ul>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="loading"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="loading || !projectForm.form.valid"
+        >
+          {{ loading ? 'Creando...' : 'Crear Proyecto' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
