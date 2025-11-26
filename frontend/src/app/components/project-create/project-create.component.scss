@@ -43,7 +43,7 @@
     margin: 0 0 1.5rem 0;
     padding-bottom: 0.75rem;
     border-bottom: 3px solid transparent;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, transparent 50%);
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 50%, transparent 50%);
     background-size: 200% 3px;
     background-position: 0 100%;
     background-repeat: no-repeat;
@@ -79,7 +79,7 @@
 
     &:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #11998e;
       box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
       transform: translateY(-2px);
     }
@@ -110,7 +110,7 @@
 
 .info-box {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #11998e;
   padding: 1.5rem;
   margin-bottom: 2rem;
   border-radius: 0.75rem;
@@ -158,11 +158,11 @@
   }
 
   &.btn-primary {
-    background: #3498db;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: white;
 
     &:hover:not(:disabled) {
-      background: #2980b9;
+      background: linear-gradient(135deg, #0e7c73 0%, #2dd068 100%);
     }
   }
 
@@ -200,12 +200,12 @@
   padding: 1.25rem;
   background: white;
   border-radius: 0.875rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #11998e;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 4px 12px rgba(17, 153, 142, 0.2);
     transform: translateY(-2px);
   }
 
@@ -274,7 +274,7 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: white;
     border-radius: 50%;
     font-weight: 700;
@@ -302,8 +302,8 @@
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    border-color: #667eea;
-    color: #667eea !important;
+    border-color: #11998e;
+    color: #11998e !important;
     background: #f7fafc !important;
     transform: translateY(-2px);
   }

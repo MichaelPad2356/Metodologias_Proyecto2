@@ -82,7 +82,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
     transform: scaleX(0);
     transition: transform 0.3s ease;
   }
@@ -131,7 +131,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
   &.status-created {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: white;
   }
 
@@ -220,7 +220,7 @@
   }
 
   &.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 

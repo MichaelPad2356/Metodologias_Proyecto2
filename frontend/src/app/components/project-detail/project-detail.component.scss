@@ -125,7 +125,7 @@
     font-size: 1.75rem;
     font-weight: 700;
     padding-bottom: 1rem;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, transparent 50%);
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 50%, transparent 50%);
     background-size: 200% 3px;
     background-position: 0 100%;
     background-repeat: no-repeat;
@@ -243,7 +243,7 @@
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   color: white;
   font-weight: 700;
   font-size: 1.5rem;
@@ -257,7 +257,7 @@
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     z-index: -1;
     opacity: 0.2;
   }
@@ -459,12 +459,12 @@
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 0.5rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #11998e;
 }
 
 .cronograma-date {
   font-weight: 600;
-  color: #667eea;
+  color: #11998e;
   min-width: 100px;
 }
 
@@ -507,7 +507,7 @@
       justify-content: center;
       width: 1.5rem;
       height: 1.5rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
       color: white;
       border-radius: 50%;
       font-size: 0.75rem;
@@ -621,7 +621,7 @@
 
       &:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: #11998e;
       }
 
       &:disabled {
@@ -662,7 +662,7 @@
   transition: all 0.2s;
 
   &:hover {
-    border-color: #667eea;
+    border-color: #11998e;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
     transform: translateY(-2px);
   }
@@ -677,7 +677,7 @@
   h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: #667eea;
+    color: #11998e;
   }
 }
 
@@ -720,7 +720,7 @@
 
       h4 {
         margin-bottom: 0.75rem;
-        color: #667eea;
+        color: #11998e;
         font-size: 1.1rem;
       }
 
