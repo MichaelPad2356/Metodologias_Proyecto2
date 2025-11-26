@@ -1,0 +1,294 @@
+<div class="iterations-container">
+  <header class="page-header">
+    <div>
+      <a [routerLink]="['/projects', projectId]" class="back-link">← Volver al proyecto</a>
+      <h1>Gestión de Iteraciones</h1>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateIterationModal()" [disabled]="loading">
+      + Nueva Iteración
+    </button>
+  </header>
+
+  @if (loading && iterations.length === 0) {
+    <div class="loading">Cargando iteraciones...</div>
+  }
+
+  @if (error) {
+    <div class="error-message">{{ error }}</div>
+  }
+
+  <div class="iterations-layout">
+    <!-- Lista de iteraciones -->
+    <div class="iterations-list">
+      <h2>Iteraciones</h2>
+      @if (iterations.length === 0 && !loading) {
+        <p class="empty-state">No hay iteraciones creadas aún.</p>
+      }
+      @for (iteration of iterations; track iteration.id) {
+        <div 
+          class="iteration-card" 
+          [class.selected]="selectedIteration?.id === iteration.id"
+          (click)="selectIteration(iteration)">
+          <div class="iteration-header">
+            <h3>{{ iteration.name }}</h3>
+            <button 
+              class="btn-icon btn-danger" 
+              (click)="deleteIteration(iteration); $event.stopPropagation()"
+              title="Eliminar iteración">
+              🗑️
+            </button>
+          </div>
+          <div class="iteration-info">
+            <span>📅 {{ iteration.startDate | date:'dd/MM/yyyy' }} - {{ iteration.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="iteration.percentageCompleted"></div>
+          </div>
+          <span class="progress-text">{{ iteration.percentageCompleted }}% completado</span>
+          @if (iteration.blockages) {
+            <div class="blockage-badge">🚫 Bloqueos</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Detalle de iteración -->
+    <div class="iteration-detail">
+      @if (selectedIteration) {
+        <div class="detail-header">
+          <h2>{{ selectedIteration.name }}</h2>
+          <button class="btn btn-primary" (click)="openCreateTaskModal()">
+            + Nueva Tarea
+          </button>
+        </div>
+
+        <div class="detail-info">
+          <div class="info-item">
+            <strong>Fechas:</strong> 
+            {{ selectedIteration.startDate | date:'dd/MM/yyyy' }} - {{ selectedIteration.endDate | date:'dd/MM/yyyy' }}
+          </div>
+          <div class="info-item">
+            <strong>Progreso:</strong> {{ selectedIteration.percentageCompleted }}%
+          </div>
+          @if (selectedIteration.blockages) {
+            <div class="info-item blockages">
+              <strong>🚫 Bloqueos:</strong>
+              <p>{{ selectedIteration.blockages }}</p>
+            </div>
+          }
+          @if (selectedIteration.observations) {
+            <div class="info-item">
+              <strong>Observaciones:</strong>
+              <p>{{ selectedIteration.observations }}</p>
+            </div>
+          }
+        </div>
+
+        <h3>Tareas ({{ selectedIteration.tasks.length || 0 }})</h3>
+        
+        @if (selectedIteration.tasks && selectedIteration.tasks.length > 0) {
+          <div class="tasks-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tarea</th>
+                  <th>Asignado a</th>
+                  <th>Estado</th>
+                  <th>Progreso</th>
+                  <th>Fechas</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (task of selectedIteration.tasks; track task.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ task.name }}</strong>
+                      @if (task.description) {
+                        <br><small>{{ task.description }}</small>
+                      }
+                    </td>
+                    <td>{{ task.assignedTo || '-' }}</td>
+                    <td>
+                      <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+                        {{ TASK_STATUS_LABELS[task.status] }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="progress-bar-small">
+                        <div class="progress-fill" [style.width.%]="task.percentageCompleted"></div>
+                      </div>
+                      {{ task.percentageCompleted }}%
+                    </td>
+                    <td>
+                      @if (task.startDate && task.endDate) {
+                        <small>
+                          {{ task.startDate | date:'dd/MM' }} - {{ task.endDate | date:'dd/MM' }}
+                        </small>
+                      } @else {
+                        <small>-</small>
+                      }
+                    </td>
+                    <td>
+                      <button class="btn-icon" (click)="openEditTaskModal(task)" title="Editar">
+                        ✏️
+                      </button>
+                      <button class="btn-icon btn-danger" (click)="deleteTask(task)" title="Eliminar">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="empty-state">No hay tareas en esta iteración.</p>
+        }
+      } @else {
+        <div class="empty-detail">
+          <p>Selecciona una iteración para ver sus detalles y tareas</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear Iteración -->
+@if (showCreateIterationModal) {
+  <div class="modal-overlay" (click)="closeCreateIterationModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nueva Iteración</h2>
+        <button class="modal-close" (click)="closeCreateIterationModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="iterationName">Nombre <span class="required">*</span></label>
+          <input type="text" id="iterationName" [(ngModel)]="newIteration.name" placeholder="Ej: Sprint 1" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startDate">Fecha Inicio <span class="required">*</span></label>
+            <input type="date" id="startDate" [(ngModel)]="newIteration.startDate" />
+          </div>
+          <div class="form-group">
+            <label for="endDate">Fecha Fin <span class="required">*</span></label>
+            <input type="date" id="endDate" [(ngModel)]="newIteration.endDate" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="observations">Observaciones</label>
+          <textarea id="observations" [(ngModel)]="newIteration.observations" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCreateIterationModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="createIteration()" [disabled]="!newIteration.name.trim()">
+          Crear
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Crear Tarea -->
+@if (showCreateTaskModal) {
+  <div class="modal-overlay" (click)="closeCreateTaskModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nueva Tarea</h2>
+        <button class="modal-close" (click)="closeCreateTaskModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="taskName">Nombre <span class="required">*</span></label>
+          <input type="text" id="taskName" [(ngModel)]="newTask.name" placeholder="Ej: Implementar login" />
+        </div>
+        <div class="form-group">
+          <label for="taskDescription">Descripción</label>
+          <textarea id="taskDescription" [(ngModel)]="newTask.description" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskStartDate">Fecha Inicio</label>
+            <input type="date" id="taskStartDate" [(ngModel)]="newTask.startDate" />
+          </div>
+          <div class="form-group">
+            <label for="taskEndDate">Fecha Fin</label>
+            <input type="date" id="taskEndDate" [(ngModel)]="newTask.endDate" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="assignedTo">Asignado a</label>
+          <input type="text" id="assignedTo" [(ngModel)]="newTask.assignedTo" placeholder="Nombre del responsable" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCreateTaskModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="createTask()" [disabled]="!newTask.name.trim()">
+          Crear
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Editar Tarea -->
+@if (showEditTaskModal && editingTask) {
+  <div class="modal-overlay" (click)="closeEditTaskModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Tarea</h2>
+        <button class="modal-close" (click)="closeEditTaskModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="editTaskName">Nombre</label>
+          <input type="text" id="editTaskName" [(ngModel)]="taskUpdate.name" />
+        </div>
+        <div class="form-group">
+          <label for="editTaskDescription">Descripción</label>
+          <textarea id="editTaskDescription" [(ngModel)]="taskUpdate.description" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTaskStartDate">Fecha Inicio</label>
+            <input type="date" id="editTaskStartDate" [(ngModel)]="taskUpdate.startDate" />
+          </div>
+          <div class="form-group">
+            <label for="editTaskEndDate">Fecha Fin</label>
+            <input type="date" id="editTaskEndDate" [(ngModel)]="taskUpdate.endDate" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editProgress">Progreso (%)</label>
+            <input type="number" id="editProgress" [(ngModel)]="taskUpdate.percentageCompleted" min="0" max="100" />
+          </div>
+          <div class="form-group">
+            <label for="editStatus">Estado</label>
+            <select id="editStatus" [(ngModel)]="taskUpdate.status">
+              <option value="NotStarted">No iniciada</option>
+              <option value="InProgress">En progreso</option>
+              <option value="Completed">Completada</option>
+              <option value="Blocked">Bloqueada</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editAssignedTo">Asignado a</label>
+          <input type="text" id="editAssignedTo" [(ngModel)]="taskUpdate.assignedTo" />
+        </div>
+        <div class="form-group">
+          <label for="editBlockages">Bloqueos</label>
+          <textarea id="editBlockages" [(ngModel)]="taskUpdate.blockages" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditTaskModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="updateTask()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}

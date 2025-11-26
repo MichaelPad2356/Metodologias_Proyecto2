@@ -26,6 +26,21 @@ public class Project
     [StringLength(500)]
     public string? Tags { get; set; }
 
+    [StringLength(2000)]
+    public string? Objetivos { get; set; }
+
+    [StringLength(2000)]
+    public string? Alcance { get; set; }
+
+    [StringLength(2000)]
+    public string? CronogramaInicial { get; set; }
+
+    [StringLength(1000)]
+    public string? Responsables { get; set; }
+
+    [StringLength(2000)]
+    public string? Hitos { get; set; }
+
     [Required]
     public ProjectStatus Status { get; set; } = ProjectStatus.Created;
 
