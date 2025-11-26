@@ -3,90 +3,98 @@
     <h1>Proyectos OpenUP</h1>
     <div class="header-actions">
       <label class="archive-toggle">
-        <input 
-          type="checkbox" 
-          [(ngModel)]="includeArchived" 
+        <input
+          type="checkbox"
+          [(ngModel)]="includeArchived"
           (change)="onArchivedToggleChange()"
-        />
-        Mostrar archivados
-      </label>
-      <a routerLink="/projects/new" class="btn btn-primary">
-        + Nuevo Proyecto
-      </a>
-    </div>
-  </header>
-
-  <div *ngIf="loading" class="loading">
-    Cargando proyectos...
-  </div>
-
-  <div *ngIf="error" class="error-message">
-    {{ error }}
-  </div>
-
-  <div *ngIf="!loading && !error" class="projects-grid">
-    <div 
-      *ngFor="let project of projects" 
-      class="project-card"
-      [routerLink]="['/projects', project.id]"
-    >
-      <div class="project-card-header">
-        <div>
-          <h3>{{ project.name }}</h3>
-          <span class="project-code">{{ project.code }}</span>
-        </div>
-        <span class="status-badge" [ngClass]="getStatusClass(project.status)">
-          {{ getStatusLabel(project.status) }}
-        </span>
+          />
+          Mostrar archivados
+        </label>
+        <a routerLink="/projects/new" class="btn btn-primary">
+          + Nuevo Proyecto
+        </a>
       </div>
+    </header>
 
-      <div class="project-card-body">
-        <div class="project-info">
-          <div class="info-item">
-            <span class="info-label">Responsable:</span>
-            <span>{{ project.responsiblePerson || 'No asignado' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Fecha inicio:</span>
-            <span>{{ project.startDate | date:'dd/MM/yyyy' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Fases:</span>
-            <span>{{ project.phaseCount }}</span>
-          </div>
-        </div>
+    @if (loading) {
+      <div class="loading">
+        Cargando proyectos...
       </div>
+    }
 
-      <div class="project-card-footer">
-        <button 
-          *ngIf="project.status !== 'Archived'"
-          class="btn btn-secondary btn-sm"
-          (click)="confirmArchive(project, $event)"
-          title="Archivar proyecto"
-        >
-          📦 Archivar
-        </button>
-        <button 
-          *ngIf="project.status === 'Archived'"
-          class="btn btn-primary btn-sm"
-          (click)="confirmUnarchive(project, $event)"
-          title="Desarchivar proyecto"
-        >
-          📤 Desarchivar
-        </button>
-        <button 
-          class="btn btn-danger btn-sm"
-          (click)="confirmDelete(project, $event)"
-          title="Eliminar proyecto"
-        >
-          🗑️ Eliminar
-        </button>
+    @if (error) {
+      <div class="error-message">
+        {{ error }}
       </div>
-    </div>
+    }
 
-    <div *ngIf="projects.length === 0" class="empty-state">
-      <p>No hay proyectos disponibles</p>
-      <a routerLink="/projects/new" class="btn btn-primary">Crear primer proyecto</a>
-    </div>
+    @if (!loading && !error) {
+      <div class="projects-grid">
+        @for (project of projects; track project) {
+          <div
+            class="project-card"
+            [routerLink]="['/projects', project.id]"
+            >
+            <div class="project-card-header">
+              <div>
+                <h3>{{ project.name }}</h3>
+                <span class="project-code">{{ project.code }}</span>
+              </div>
+              <span class="status-badge" [ngClass]="getStatusClass(project.status)">
+                {{ getStatusLabel(project.status) }}
+              </span>
+            </div>
+            <div class="project-card-body">
+              <div class="project-info">
+                <div class="info-item">
+                  <span class="info-label">Responsable:</span>
+                  <span>{{ project.responsiblePerson || 'No asignado' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fecha inicio:</span>
+                  <span>{{ project.startDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fases:</span>
+                  <span>{{ project.phaseCount }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="project-card-footer">
+              @if (project.status !== 'Archived') {
+                <button
+                  class="btn btn-secondary btn-sm"
+                  (click)="confirmArchive(project, $event)"
+                  title="Archivar proyecto"
+                  >
+                  📦 Archivar
+                </button>
+              }
+              @if (project.status === 'Archived') {
+                <button
+                  class="btn btn-primary btn-sm"
+                  (click)="confirmUnarchive(project, $event)"
+                  title="Desarchivar proyecto"
+                  >
+                  📤 Desarchivar
+                </button>
+              }
+              <button
+                class="btn btn-danger btn-sm"
+                (click)="confirmDelete(project, $event)"
+                title="Eliminar proyecto"
+                >
+                🗑️ Eliminar
+              </button>
+            </div>
+          </div>
+        }
+        @if (projects.length === 0) {
+          <div class="empty-state">
+            <p>No hay proyectos disponibles</p>
+            <a routerLink="/projects/new" class="btn btn-primary">Crear primer proyecto</a>
+          </div>
+        }
+      </div>
+    }
   </div>
-</div>

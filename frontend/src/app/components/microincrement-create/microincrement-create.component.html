@@ -1,0 +1,100 @@
+<div class="microincrement-create-container">
+  <header class="page-header">
+    <h1>Crear Nuevo Microincremento</h1>
+  </header>
+
+  <div class="card">
+    <form (ngSubmit)="onSubmit()" #microForm="ngForm">
+      @if (error) {
+        <div class="error-message">
+          {{ error }}
+        </div>
+      }
+
+      @if (success) {
+        <div class="success-message">
+          ¡Microincremento creado exitosamente!
+        </div>
+      }
+
+      <div class="form-section">
+        <h3>Información del Microincremento</h3>
+
+        <div class="form-group">
+          <label for="title">Título <span class="required">*</span></label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="form.title"
+            name="title"
+            placeholder="Ej: Implementar autenticación"
+            required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea
+              id="description"
+              [(ngModel)]="form.description"
+              name="description"
+              placeholder="Describe el microincremento (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="author">Autor <span class="required">*</span></label>
+            <input
+              type="text"
+              id="author"
+              [(ngModel)]="form.author"
+              name="author"
+              placeholder="Nombre del autor"
+              required
+              />
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Referencias</h3>
+
+            <div class="form-group">
+              <label for="projectPhaseId">ID de Iteración (Fase) <span class="required">*</span></label>
+              <input
+                type="number"
+                id="projectPhaseId"
+                [(ngModel)]="form.projectPhaseId"
+                name="projectPhaseId"
+                placeholder="Ej: 1"
+                required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="deliverableId">ID de Entregable</label>
+                <input
+                  type="number"
+                  id="deliverableId"
+                  [(ngModel)]="form.deliverableId"
+                  name="deliverableId"
+                  placeholder="Ej: 1 (opcional)"
+                  />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" (click)="resetForm()" class="btn btn-secondary">
+                  Cancelar
+                </button>
+                <button type="submit" [disabled]="loading" class="btn btn-primary">
+                  {{ loading ? 'Creando...' : 'Crear Microincremento' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- LISTA DE MICROINCREMENTOS ABAJO -->
+          <div class="microincrements-list-section">
+            <app-microincrement-list></app-microincrement-list>
+          </div>
+        </div>

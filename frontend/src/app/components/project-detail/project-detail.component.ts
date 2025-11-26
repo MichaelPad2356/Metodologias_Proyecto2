@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'; 
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { Project, PROJECT_STATUS_LABELS, PHASE_STATUS_LABELS } from '../../models/project.model';
+import { ArtifactsManagerComponent } from '../artifacts-manager/artifacts-manager.component'; 
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ArtifactsManagerComponent],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
 })
