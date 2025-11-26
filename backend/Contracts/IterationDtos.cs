@@ -79,8 +79,8 @@ public record PhaseProgressDto(
     int PhaseId,
     string PhaseName,
     int PercentageCompleted,
-    int TotalIterations,
-    int CompletedIterations
+    int TotalTasks,
+    int CompletedTasks
 );
 
 public record IterationSummaryDto(

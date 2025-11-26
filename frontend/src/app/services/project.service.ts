@@ -119,4 +119,11 @@ export class ProjectService {
       `${this.apiUrl}/${projectId}/plan-versions/${version}`
     );
   }
+
+  /**
+   * Obtiene las fases de un proyecto
+   */
+  getProjectPhases(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${projectId}/phases`);
+  }
 }

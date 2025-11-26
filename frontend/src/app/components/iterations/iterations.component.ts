@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { IterationService } from '../../services/iteration.service';
-import { Iteration, IterationTask, CreateIterationRequest, CreateIterationTaskRequest, UpdateIterationTaskRequest, TASK_STATUS_LABELS, TaskStatus } from '../../models/project.model';
+import { Iteration, IterationTask, CreateIterationRequest, CreateIterationTaskRequest } from '../../models/project.model';
+import { UpdateIterationTaskRequest, TASK_STATUS_LABELS, TaskStatus } from '../../models/iteration.model';
 
 @Component({
   selector: 'app-iterations',

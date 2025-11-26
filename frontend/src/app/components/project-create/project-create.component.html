@@ -136,49 +136,52 @@
                   </div>
 
                   <div class="form-group">
-                    <label>Cronograma Inicial</label>
+                    <label>📅 Cronograma Inicial</label>
                     <div class="cronograma-list">
-                      @for (item of cronogramaItems; track item; let i = $index) {
+                      @for (item of cronogramaItems; track $index; let i = $index) {
                         <div class="cronograma-item">
-                          <input type="date" [name]="'cronogramaDate_' + i" [(ngModel)]="cronogramaItems[i].date" [disabled]="loading" />
-                          <textarea rows="2" [name]="'cronogramaDesc_' + i" [(ngModel)]="cronogramaItems[i].description" placeholder="Descripción / evento" [disabled]="loading"></textarea>
-                          <button type="button" class="btn btn-sm" (click)="removeCronogramaItem(i)" [disabled]="loading">Eliminar</button>
+                          <div class="cronograma-inputs">
+                            <input type="date" [name]="'cronogramaDate_' + i" [(ngModel)]="cronogramaItems[i].date" [disabled]="loading" class="form-control" />
+                            <textarea rows="2" [name]="'cronogramaDesc_' + i" [(ngModel)]="cronogramaItems[i].description" placeholder="Descripción del evento o hito..." [disabled]="loading" class="form-control"></textarea>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-danger" (click)="removeCronogramaItem(i)" [disabled]="loading">🗑️</button>
                         </div>
                       }
-                      <button type="button" class="btn btn-secondary" (click)="addCronogramaItem()" [disabled]="loading">Agregar fecha</button>
-                      <small class="form-hint">Agrega fechas clave y su descripción. Se guardará como lista estructurada.</small>
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addCronogramaItem()" [disabled]="loading">➕ Agregar fecha clave</button>
+                      <small class="form-hint">💡 Agrega fechas importantes del proyecto con su descripción</small>
                     </div>
                   </div>
 
                   <div class="form-group">
-                    <label>Responsables</label>
+                    <label>👥 Responsables</label>
                     <div class="responsables-list">
-                      @for (r of responsablesList; track r; let i = $index) {
+                      @for (r of responsablesList; track $index; let i = $index) {
                         <div class="responsable-item">
-                          <input type="text" [name]="'responsable_' + i" [(ngModel)]="responsablesList[i]" placeholder="Nombre - Rol" [disabled]="loading" />
-                          <button type="button" class="btn btn-sm" (click)="removeResponsable(i)" [disabled]="loading">Eliminar</button>
+                          <input type="text" [name]="'responsable_' + i" [(ngModel)]="responsablesList[i]" placeholder="Ej: Juan Pérez - Líder Técnico" [disabled]="loading" class="form-control" />
+                          <button type="button" class="btn btn-sm btn-danger" (click)="removeResponsable(i)" [disabled]="loading">🗑️</button>
                         </div>
                       }
-                      <button type="button" class="btn btn-secondary" (click)="addResponsable()" [disabled]="loading">Agregar responsable</button>
-                      <small class="form-hint">Ingresa nombre y rol; guarda como lista.</small>
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addResponsable()" [disabled]="loading">➕ Agregar responsable</button>
+                      <small class="form-hint">💡 Incluye nombre completo y rol en el proyecto</small>
                     </div>
                   </div>
 
                   <div class="form-group">
-                    <label>Hitos</label>
+                    <label>🎯 Hitos del Proyecto</label>
                     <div class="hitos-list">
-                      @for (h of hitosList; track h; let i = $index) {
+                      @for (h of hitosList; track $index; let i = $index) {
                         <div class="hito-item">
-                          <input type="text" [name]="'hito_' + i" [(ngModel)]="hitosList[i]" placeholder="Hito" [disabled]="loading" />
+                          <span class="hito-number">{{ i + 1 }}</span>
+                          <input type="text" [name]="'hito_' + i" [(ngModel)]="hitosList[i]" placeholder="Ej: Lanzamiento versión beta" [disabled]="loading" class="form-control" />
                           <div class="hito-actions">
-                            <button type="button" class="btn btn-sm" (click)="moveHitoUp(i)" [disabled]="loading || i === 0">↑</button>
-                            <button type="button" class="btn btn-sm" (click)="moveHitoDown(i)" [disabled]="loading || i === hitosList.length - 1">↓</button>
-                            <button type="button" class="btn btn-sm" (click)="removeHito(i)" [disabled]="loading">Eliminar</button>
+                            <button type="button" class="btn btn-sm btn-icon" (click)="moveHitoUp(i)" [disabled]="loading || i === 0" title="Subir">⬆️</button>
+                            <button type="button" class="btn btn-sm btn-icon" (click)="moveHitoDown(i)" [disabled]="loading || i === hitosList.length - 1" title="Bajar">⬇️</button>
+                            <button type="button" class="btn btn-sm btn-danger" (click)="removeHito(i)" [disabled]="loading">🗑️</button>
                           </div>
                         </div>
                       }
-                      <button type="button" class="btn btn-secondary" (click)="addHito()" [disabled]="loading">Agregar hito</button>
-                      <small class="form-hint">Ordena los hitos con las flechas. Se guardará como lista ordenada.</small>
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addHito()" [disabled]="loading">➕ Agregar hito</button>
+                      <small class="form-hint">💡 Define los hitos principales y ordénalos con las flechas</small>
                     </div>
                   </div>
                 </div>

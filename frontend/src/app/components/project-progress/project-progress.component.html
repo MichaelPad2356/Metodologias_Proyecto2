@@ -1,0 +1,61 @@
+<div class="progress-dashboard">
+  <h3>Progreso del Proyecto</h3>
+
+  @if (loading) {
+    <div class="loading">Cargando progreso...</div>
+  }
+  
+  @if (error) {
+    <div class="error-message">{{ error }}</div>
+  }
+
+  @if (progress && !loading) {
+    <div class="progress-content">
+      <!-- Progreso Total -->
+      <div class="total-progress">
+        <div class="progress-header">
+          <h4>Progreso Total</h4>
+          <span class="percentage">{{ progress.overallPercentage }}%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" 
+               [class]="getProgressBarClass(progress.overallPercentage)"
+               [style.width]="getProgressWidth(progress.overallPercentage)">
+          </div>
+        </div>
+        <p class="task-count">
+          {{ getCompletedTasks() }} de {{ getTotalTasks() }} tareas completadas
+        </p>
+      </div>
+
+      <!-- Progreso por Fase -->
+      <div class="phase-progress-section">
+        <h4>Progreso por Fase</h4>
+        
+        @if (progress.phaseProgress.length === 0) {
+          <div class="no-phases">
+            No hay fases con tareas asignadas
+          </div>
+        }
+
+        @for (phase of progress.phaseProgress; track trackByPhaseId($index, phase)) {
+          <div class="phase-item">
+            <div class="phase-header">
+              <span class="phase-name">{{ phase.phaseName }}</span>
+              <span class="percentage">{{ phase.percentageCompleted }}%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" 
+                   [class]="getProgressBarClass(phase.percentageCompleted)"
+                   [style.width]="getProgressWidth(phase.percentageCompleted)">
+              </div>
+            </div>
+            <p class="task-count">
+              {{ phase.completedTasks }} de {{ phase.totalTasks }} tareas completadas
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

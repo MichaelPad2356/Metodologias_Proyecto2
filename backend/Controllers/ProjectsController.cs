@@ -71,6 +71,24 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Obtiene las fases de un proyecto
+    /// </summary>
+    [HttpGet("{id:int}/phases")]
+    [ProducesResponseType(typeof(List<ProjectPhaseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProjectPhases(int id)
+    {
+        var result = await _projectService.GetProjectByIdAsync(id);
+        
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Data!.Phases);
+    }
+
+    /// <summary>
     /// Crea un nuevo proyecto OpenUP con las 4 fases predeterminadas
     /// </summary>
     [HttpPost]

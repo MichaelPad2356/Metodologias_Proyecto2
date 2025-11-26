@@ -9,7 +9,7 @@ import {
   CreateIterationTaskRequest,
   UpdateIterationTaskRequest,
   ProjectProgress
-} from '../models/project.model';
+} from '../models/iteration.model';
 
 @Injectable({
   providedIn: 'root'

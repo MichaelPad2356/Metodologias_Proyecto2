@@ -218,20 +218,27 @@ public class IterationService : IIterationService
             ? (int)iterations.Average(i => i.PercentageCompleted)
             : 0;
 
-        // Calcular progreso por fase (simplificado - asumiendo distribución uniforme)
+        // Calcular progreso por fase basado en tareas asignadas
         var phaseProgress = project.Phases.OrderBy(p => p.Order).Select(phase => 
         {
-            var phaseIterations = iterations.Count / project.Phases.Count;
-            var phaseCompletedIterations = iterations
-                .Where(i => i.PercentageCompleted == 100)
-                .Count() / project.Phases.Count;
+            // Obtener todas las tareas asignadas a esta fase en todas las iteraciones
+            var phaseTasks = iterations
+                .SelectMany(i => i.Tasks)
+                .Where(t => t.ProjectPhaseId == phase.Id)
+                .ToList();
+
+            var totalTasks = phaseTasks.Count;
+            var completedTasks = phaseTasks.Count(t => t.PercentageCompleted == 100);
+            var percentageCompleted = totalTasks > 0 
+                ? (int)((completedTasks * 100.0) / totalTasks)
+                : 0;
 
             return new PhaseProgressDto(
                 phase.Id,
                 phase.Name,
-                phaseIterations > 0 ? (phaseCompletedIterations * 100 / phaseIterations) : 0,
-                phaseIterations,
-                phaseCompletedIterations
+                percentageCompleted,
+                totalTasks,
+                completedTasks
             );
         }).ToList();
 
