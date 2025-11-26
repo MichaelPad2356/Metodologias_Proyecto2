@@ -1,1 +1,86 @@
-<router-outlet />
+<!-- Barra de Navegación Estilizada (Con hrefs) -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-links">
+      <!-- Link Inicio -->
+      <a href="/" class="nav-item">
+        <span class="icon">🏠</span> Inicio
+      </a>
+      
+      <!-- Link Planning -->
+      <a href="/planning" class="nav-item">
+        <span class="icon">📊</span> Planning
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Contenedor del contenido dinámico -->
+<div class="main-wrapper">
+  <router-outlet></router-outlet>
+</div>
+
+<!-- Estilos embebidos -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  /* Reset básico para el componente */
+  :host {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .navbar {
+    background-color: #111827; /* Gris oscuro profesional */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+  }
+
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    /* Centramos los links ya que quitamos el título */
+    justify-content: flex-start; 
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    height: 100%;
+  }
+
+  .nav-item {
+    color: #9ca3af; /* Color texto inactivo */
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 100%;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    padding: 0 0.5rem;
+  }
+
+  .nav-item:hover {
+    color: #f3f4f6; /* Blanco al pasar el mouse */
+    background-color: rgba(255, 255, 255, 0.05); /* Sutil fondo al hover */
+  }
+
+  .icon {
+    font-size: 1.1rem;
+    opacity: 0.8;
+  }
+
+  .main-wrapper {
+    background-color: #f3f4f6;
+    min-height: calc(100vh - 60px);
+  }
+</style>
