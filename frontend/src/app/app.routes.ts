@@ -3,12 +3,15 @@ import { ProjectListComponent } from './components/project-list/project-list.com
 import { ProjectCreateComponent } from './components/project-create/project-create.component';
 import { ProjectDetailComponent } from './components/project-detail/project-detail.component';
 import { IterationManagementComponent } from './components/iteration-management/iteration-management.component';
+import { PlanningComponent } from './planning.component';
+import { HomeComponent } from './home.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/projects', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
+  { path: 'planning', component: PlanningComponent },
   { path: 'projects', component: ProjectListComponent },
   { path: 'projects/new', component: ProjectCreateComponent },
   { path: 'projects/:id', component: ProjectDetailComponent },
   { path: 'projects/:id/iterations', component: IterationManagementComponent },
-  { path: '**', redirectTo: '/projects' }
+  { path: '**', redirectTo: '/' }
 ];
