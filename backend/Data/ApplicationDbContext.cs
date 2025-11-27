@@ -44,9 +44,6 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasConversion<string>();
-            entity.HasMany(e => e.Deliverables)
-                .WithOne(d => d.ProjectPhase)
-                .HasForeignKey(d => d.ProjectPhaseId);
             entity.HasMany(e => e.Artifacts)
                 .WithOne(a => a.ProjectPhase)
                 .HasForeignKey(a => a.ProjectPhaseId);
@@ -67,7 +64,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.ProjectPhase)
-                .WithMany()
+                .WithMany(p => p.Deliverables)
                 .HasForeignKey(e => e.ProjectPhaseId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

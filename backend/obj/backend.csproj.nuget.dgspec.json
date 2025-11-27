@@ -1,7 +1,6 @@
 {
   "format": 1,
   "restore": {
-<<<<<<< HEAD
     "C:\\Users\\panin\\Documents\\Metodología\\Metodologias_Proyecto2\\backend\\backend.csproj": {}
   },
   "projects": {
@@ -13,38 +12,14 @@
         "projectPath": "C:\\Users\\panin\\Documents\\Metodología\\Metodologias_Proyecto2\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\panin\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\panin\\Documents\\Metodología\\Metodologias_Proyecto2\\backend\\obj\\",
-=======
-    "C:\\Users\\aketz\\OneDrive\\Escritorio\\METODOLOGIA\\Metodologias_Proyecto2\\backend\\backend.csproj": {}
-  },
-  "projects": {
-    "C:\\Users\\aketz\\OneDrive\\Escritorio\\METODOLOGIA\\Metodologias_Proyecto2\\backend\\backend.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "C:\\Users\\aketz\\OneDrive\\Escritorio\\METODOLOGIA\\Metodologias_Proyecto2\\backend\\backend.csproj",
-        "projectName": "backend",
-        "projectPath": "C:\\Users\\aketz\\OneDrive\\Escritorio\\METODOLOGIA\\Metodologias_Proyecto2\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\aketz\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\aketz\\OneDrive\\Escritorio\\METODOLOGIA\\Metodologias_Proyecto2\\backend\\obj\\",
->>>>>>> origin/feature/Microincrementos
         "projectStyle": "PackageReference",
         "configFilePaths": [
-<<<<<<< HEAD
           "C:\\Users\\panin\\AppData\\Roaming\\NuGet\\NuGet.Config"
-=======
-          "C:\\Users\\aketz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
->>>>>>> origin/feature/Microincrementos
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-<<<<<<< HEAD
-=======
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
->>>>>>> origin/feature/Microincrementos
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

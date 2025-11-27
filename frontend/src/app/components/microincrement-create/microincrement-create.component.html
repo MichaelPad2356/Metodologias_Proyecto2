@@ -4,31 +4,38 @@
   </header>
 
   <div class="card">
-    <form (ngSubmit)="onSubmit()" #microForm="ngForm">
-      @if (error) {
-        <div class="error-message">
-          {{ error }}
-        </div>
-      }
+    @if (loadingData) {
+      <div class="loading-message">
+        Cargando proyectos...
+      </div>
+    }
 
-      @if (success) {
-        <div class="success-message">
-          ¡Microincremento creado exitosamente!
-        </div>
-      }
+    @if (!loadingData) {
+      <form (ngSubmit)="onSubmit()" #microForm="ngForm">
+        @if (error) {
+          <div class="error-message">
+            {{ error }}
+          </div>
+        }
 
-      <div class="form-section">
-        <h3>Información del Microincremento</h3>
+        @if (success) {
+          <div class="success-message">
+            ¡Microincremento creado exitosamente!
+          </div>
+        }
 
-        <div class="form-group">
-          <label for="title">Título <span class="required">*</span></label>
-          <input
-            type="text"
-            id="title"
-            [(ngModel)]="form.title"
-            name="title"
-            placeholder="Ej: Implementar autenticación"
-            required
+        <div class="form-section">
+          <h3>Información del Microincremento</h3>
+
+          <div class="form-group">
+            <label for="title">Título <span class="required">*</span></label>
+            <input
+              type="text"
+              id="title"
+              [(ngModel)]="form.title"
+              name="title"
+              placeholder="Ej: Implementar autenticación"
+              required
             />
           </div>
 
@@ -51,47 +58,79 @@
               name="author"
               placeholder="Nombre del autor"
               required
-              />
-            </div>
+            />
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Referencias</h3>
+
+          <div class="form-group">
+            <label for="project">Proyecto <span class="required">*</span></label>
+            <select
+              id="project"
+              [(ngModel)]="selectedProjectId"
+              name="project"
+              (change)="onProjectChange($any($event.target).value)"
+              required
+            >
+              <option [value]="null">Selecciona un proyecto</option>
+              @for (project of projects; track project.id) {
+                <option [value]="project.id">{{ project.name }} ({{ project.code }})</option>
+              }
+            </select>
           </div>
 
-          <div class="form-section">
-            <h3>Referencias</h3>
-
-            <div class="form-group">
-              <label for="projectPhaseId">ID de Iteración (Fase) <span class="required">*</span></label>
-              <input
-                type="number"
-                id="projectPhaseId"
-                [(ngModel)]="form.projectPhaseId"
-                name="projectPhaseId"
-                placeholder="Ej: 1"
-                required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="deliverableId">ID de Entregable</label>
-                <input
-                  type="number"
-                  id="deliverableId"
-                  [(ngModel)]="form.deliverableId"
-                  name="deliverableId"
-                  placeholder="Ej: 1 (opcional)"
-                  />
-                </div>
-              </div>
-
-              <div class="form-actions">
-                <button type="button" (click)="resetForm()" class="btn btn-secondary">
-                  Cancelar
-                </button>
-                <button type="submit" [disabled]="loading" class="btn btn-primary">
-                  {{ loading ? 'Creando...' : 'Crear Microincremento' }}
-                </button>
-              </div>
-            </form>
+          <div class="form-group">
+            <label for="projectPhaseId">Fase del Proyecto <span class="required">*</span></label>
+            <select
+              id="projectPhaseId"
+              [(ngModel)]="form.projectPhaseId"
+              name="projectPhaseId"
+              (change)="onPhaseChange($any($event.target).value)"
+              [disabled]="!selectedProjectId || phases.length === 0"
+              required
+            >
+              <option [value]="0">Selecciona una fase</option>
+              @for (phase of phases; track phase.id) {
+                <option [value]="phase.id">{{ phase.name }}</option>
+              }
+            </select>
+            @if (selectedProjectId && phases.length === 0) {
+              <small class="hint">Este proyecto no tiene fases creadas</small>
+            }
           </div>
+
+          <div class="form-group">
+            <label for="deliverableId">Entregable (opcional)</label>
+            <select
+              id="deliverableId"
+              [(ngModel)]="form.deliverableId"
+              name="deliverableId"
+              [disabled]="!form.projectPhaseId || deliverables.length === 0"
+            >
+              <option [value]="undefined">Sin entregable específico</option>
+              @for (deliverable of deliverables; track deliverable.id) {
+                <option [value]="deliverable.id">{{ deliverable.name }}</option>
+              }
+            </select>
+            @if (form.projectPhaseId && deliverables.length === 0) {
+              <small class="hint">Esta fase no tiene entregables</small>
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="resetForm()" class="btn btn-secondary">
+            Limpiar
+          </button>
+          <button type="submit" [disabled]="loading || !selectedProjectId || !form.projectPhaseId" class="btn btn-primary">
+            {{ loading ? 'Creando...' : 'Crear Microincremento' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
 
           <!-- LISTA DE MICROINCREMENTOS ABAJO -->
           <div class="microincrements-list-section">

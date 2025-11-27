@@ -78,7 +78,8 @@
   input[type="text"],
   input[type="number"],
   input[type="date"],
-  textarea {
+  textarea,
+  select {
     width: 100%;
     padding: 1rem 1.25rem;
     border: 2px solid #e5e7eb;
@@ -105,6 +106,10 @@
     }
   }
 
+  select {
+    cursor: pointer;
+  }
+
   textarea {
     resize: vertical;
     font-family: inherit;
@@ -117,6 +122,21 @@
     font-size: 0.875rem;
     color: #7f8c8d;
   }
+
+  .hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #f39c12;
+    font-style: italic;
+  }
+}
+
+.loading-message {
+  text-align: center;
+  padding: 2rem;
+  color: #667eea;
+  font-size: 1.125rem;
 }
 
 .form-actions {
