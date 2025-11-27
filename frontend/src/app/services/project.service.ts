@@ -5,7 +5,9 @@ import {
   Project, 
   ProjectListItem, 
   CreateProjectRequest, 
-  UpdateProjectRequest 
+  UpdateProjectRequest,
+  ProjectPlanVersion,
+  CreatePlanVersionRequest
 } from '../models/project.model';
 
 @Injectable({
@@ -79,5 +81,56 @@ export class ProjectService {
     return this.http.delete<{ message: string; success: boolean }>(
       `${this.apiUrl}/${id}`
     );
+  }
+
+  /**
+   * Exporta el plan del proyecto a PDF
+   */
+  exportProjectPlanToPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/export-pdf`, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Guarda una nueva versión del plan del proyecto
+   */
+  savePlanVersion(projectId: number, request: CreatePlanVersionRequest): Observable<ProjectPlanVersion> {
+    return this.http.post<ProjectPlanVersion>(
+      `${this.apiUrl}/${projectId}/plan-versions`,
+      request
+    );
+  }
+
+  /**
+   * Obtiene todas las versiones del plan de un proyecto
+   */
+  getPlanVersions(projectId: number): Observable<ProjectPlanVersion[]> {
+    return this.http.get<ProjectPlanVersion[]>(
+      `${this.apiUrl}/${projectId}/plan-versions`
+    );
+  }
+
+  /**
+   * Obtiene una versión específica del plan
+   */
+  getPlanVersion(projectId: number, version: number): Observable<ProjectPlanVersion> {
+    return this.http.get<ProjectPlanVersion>(
+      `${this.apiUrl}/${projectId}/plan-versions/${version}`
+    );
+  }
+
+  /**
+   * Obtiene las fases de un proyecto
+   */
+  getProjectPhases(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${projectId}/phases`);
+  }
+
+  /**
+   * Obtiene el progreso del proyecto basado en tareas de iteraciones
+   */
+  getProjectProgress(projectId: number): Observable<any> {
+    return this.http.get<any>(`/api/planning/progreso/${projectId}`);
   }
 }

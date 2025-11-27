@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace backend.Models;
 
@@ -22,7 +23,10 @@ public class ProjectPhase
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public Project Project { get; set; } = null!;
+    public Project? Project { get; set; }
+
+    public ICollection<Deliverable> Deliverables { get; set; } = new List<Deliverable>();
+    public ICollection<Artifact> Artifacts { get; set; } = new List<Artifact>();
 }
 
 public enum PhaseStatus

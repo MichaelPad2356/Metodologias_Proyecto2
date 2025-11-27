@@ -24,6 +24,33 @@
     font-size: 2.5rem;
     font-weight: 700;
   }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+
+      &:hover {
+        background: #2980b9;
+      }
+    }
+  }
 }
 
 .back-link {
@@ -98,7 +125,7 @@
     font-size: 1.75rem;
     font-weight: 700;
     padding-bottom: 1rem;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, transparent 50%);
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 50%, transparent 50%);
     background-size: 200% 3px;
     background-position: 0 100%;
     background-repeat: no-repeat;
@@ -155,59 +182,38 @@
   gap: 1rem;
 }
 
+.phase-item-container {
+  background: white;
+  border-radius: 1rem; // Redondea todo el contenedor
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  overflow: hidden; // Importante para que los hijos no se salgan de los bordes redondeados
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+  }
+}
+
 .phase-item {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem;
-  border-radius: 1rem;
-  border: 2px solid transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    transition: all 0.3s ease;
-  }
+  // Quitamos bordes y fondos de aquí, ya que los maneja el contenedor
+  border-bottom: 1px solid #e5e7eb; // Línea divisoria
+  transition: background-color 0.3s ease;
 
   &:hover {
-    transform: translateX(8px);
+    background-color: #f9fafb; // Un ligero color al pasar el mouse
   }
+}
 
-  &.phase-not-started {
-    background: rgba(156, 163, 175, 0.1);
-    border-color: #e5e7eb;
-
-    &::before {
-      background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
-    }
-  }
-
-  &.phase-in-progress {
-    background: rgba(251, 191, 36, 0.1);
-    border-color: #fbbf24;
-    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
-
-    &::before {
-      background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
-    }
-  }
-
-  &.phase-completed {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
-
-    &::before {
-      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-    }
-  }
+// El área donde vive el componente de artefactos
+.artifacts-for-phase {
+  padding: 0; // El padding lo manejará el componente hijo
+  background-color: #fdfdff; // Un color de fondo ligeramente distinto para diferenciar
 }
 
 .phase-number {
@@ -216,7 +222,7 @@
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   color: white;
   font-weight: 700;
   font-size: 1.5rem;
@@ -230,7 +236,7 @@
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     z-index: -1;
     opacity: 0.2;
   }
@@ -349,6 +355,16 @@
   }
 }
 
+.artifacts-for-phase {
+  padding: 0 1rem 1rem 1rem; // Añade algo de espacio alrededor
+  background-color: #fff;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .project-detail-container {
     padding: 1rem;
@@ -370,5 +386,373 @@
 
   .actions-bar {
     flex-direction: column;
+  }
+}
+
+// Estilos para el Plan del Proyecto
+.plan-card {
+  grid-column: 1 / -1; // Ocupa todo el ancho
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  h2 {
+    margin: 0;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+.plan-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.plan-section {
+  h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.plan-text {
+  margin: 0;
+  line-height: 1.7;
+  color: #555;
+  white-space: pre-wrap;
+}
+
+.cronograma-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cronograma-item-display {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  border-left: 4px solid #11998e;
+}
+
+.cronograma-date {
+  font-weight: 600;
+  color: #11998e;
+  min-width: 100px;
+}
+
+.cronograma-desc {
+  flex: 1;
+  color: #555;
+}
+
+.responsables-list,
+.hitos-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    line-height: 1.7;
+    color: #555;
+    padding: 0.5rem 0;
+  }
+}
+
+.hitos-list {
+  counter-reset: hito-counter;
+
+  li {
+    counter-increment: hito-counter;
+    position: relative;
+    padding-left: 2rem;
+    list-style: none;
+
+    &::before {
+      content: counter(hito-counter);
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+  font-style: italic;
+}
+
+// Estilos para modales
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+
+  &.modal-large {
+    max-width: 900px;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1a202c;
+  }
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f0f0f0;
+    color: #333;
+  }
+}
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+
+      .required {
+        color: #e74c3c;
+      }
+    }
+
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #11998e;
+      }
+
+      &:disabled {
+        background: #f5f5f5;
+        cursor: not-allowed;
+      }
+    }
+
+    .form-hint {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: #999;
+    }
+  }
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+// Estilos para el listado de versiones
+.versions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.version-item {
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #11998e;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+}
+
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #11998e;
+  }
+}
+
+.version-date {
+  font-size: 0.875rem;
+  color: #999;
+}
+
+.version-obs {
+  margin: 0.75rem 0;
+  color: #555;
+  line-height: 1.6;
+}
+
+.version-author {
+  display: block;
+  font-size: 0.875rem;
+  color: #999;
+  font-style: italic;
+}
+
+// Estilos para el detalle de una versión
+.version-detail {
+  h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1a202c;
+  }
+
+  p {
+    margin: 0.5rem 0;
+    color: #555;
+  }
+
+  .version-plan-content {
+    margin-top: 2rem;
+
+    .plan-section {
+      margin-bottom: 2rem;
+
+      h4 {
+        margin-bottom: 0.75rem;
+        color: #11998e;
+        font-size: 1.1rem;
+      }
+
+      p, pre {
+        margin: 0;
+        color: #555;
+        line-height: 1.7;
+      }
+
+      pre {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// Estilos para los botones de acciones del plan
+.plan-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -9,11 +9,16 @@ namespace backend.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly IPdfExportService _pdfExportService;
     private readonly ILogger<ProjectsController> _logger;
 
-    public ProjectsController(IProjectService projectService, ILogger<ProjectsController> logger)
+    public ProjectsController(
+        IProjectService projectService, 
+        IPdfExportService pdfExportService,
+        ILogger<ProjectsController> logger)
     {
         _projectService = projectService;
+        _pdfExportService = pdfExportService;
         _logger = logger;
     }
 
@@ -63,6 +68,24 @@ public class ProjectsController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Obtiene las fases de un proyecto
+    /// </summary>
+    [HttpGet("{id:int}/phases")]
+    [ProducesResponseType(typeof(List<ProjectPhaseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProjectPhases(int id)
+    {
+        var result = await _projectService.GetProjectByIdAsync(id);
+        
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Data!.Phases);
     }
 
     /// <summary>
@@ -181,5 +204,32 @@ public class ProjectsController : ControllerBase
 
         _logger.LogWarning("Proyecto eliminado permanentemente: ID {ProjectId} por {UserName}", id, userName);
         return Ok(new { message = "Proyecto eliminado exitosamente", success = true });
+    }
+
+    /// <summary>
+    /// Exporta el plan del proyecto a PDF
+    /// </summary>
+    [HttpGet("{id:int}/export-pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult ExportProjectPlanToPdf(int id)
+    {
+        try
+        {
+            var pdfBytes = _pdfExportService.GenerateProjectPlanPdf(id);
+            
+            return File(pdfBytes, "application/pdf", $"Plan_Proyecto_{id}_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Error al exportar PDF del proyecto {ProjectId}", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inesperado al exportar PDF del proyecto {ProjectId}", id);
+            // Devuelve la excepción completa temporalmente para diagnóstico en desarrollo
+            return StatusCode(500, new { message = "Error al generar el PDF", detail = ex.ToString() });
+        }
     }
 }

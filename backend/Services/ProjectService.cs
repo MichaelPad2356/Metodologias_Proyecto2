@@ -34,6 +34,11 @@ public class ProjectService : IProjectService
             Code = dto.Code,
             StartDate = dto.StartDate,
             Description = dto.Description,
+                Objetivos = dto.Objetivos,
+                Alcance = dto.Alcance,
+                CronogramaInicial = dto.CronogramaInicial,
+                Responsables = dto.Responsables,
+                Hitos = dto.Hitos,
             ResponsiblePerson = dto.ResponsiblePerson,
             Tags = dto.Tags,
             Status = ProjectStatus.Created,
@@ -149,6 +154,36 @@ public class ProjectService : IProjectService
         {
             changes.Add($"Descripción actualizada");
             project.Description = dto.Description;
+        }
+
+        if (dto.Objetivos != null && dto.Objetivos != project.Objetivos)
+        {
+            changes.Add("Objetivos actualizados");
+            project.Objetivos = dto.Objetivos;
+        }
+
+        if (dto.Alcance != null && dto.Alcance != project.Alcance)
+        {
+            changes.Add("Alcance actualizado");
+            project.Alcance = dto.Alcance;
+        }
+
+        if (dto.CronogramaInicial != null && dto.CronogramaInicial != project.CronogramaInicial)
+        {
+            changes.Add("Cronograma inicial actualizado");
+            project.CronogramaInicial = dto.CronogramaInicial;
+        }
+
+        if (dto.Responsables != null && dto.Responsables != project.Responsables)
+        {
+            changes.Add("Responsables actualizados");
+            project.Responsables = dto.Responsables;
+        }
+
+        if (dto.Hitos != null && dto.Hitos != project.Hitos)
+        {
+            changes.Add("Hitos actualizados");
+            project.Hitos = dto.Hitos;
         }
 
         if (dto.ResponsiblePerson != null && dto.ResponsiblePerson != project.ResponsiblePerson)
@@ -288,6 +323,11 @@ public class ProjectService : IProjectService
             Description = project.Description,
             ResponsiblePerson = project.ResponsiblePerson,
             Tags = project.Tags,
+            Objetivos = project.Objetivos,
+            Alcance = project.Alcance,
+            CronogramaInicial = project.CronogramaInicial,
+            Responsables = project.Responsables,
+            Hitos = project.Hitos,
             Status = project.Status.ToString(),
             CreatedAt = project.CreatedAt,
             ArchivedAt = project.ArchivedAt,
