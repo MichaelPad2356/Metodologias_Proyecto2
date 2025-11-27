@@ -7,7 +7,7 @@
         <span class="project-code">{{ project.code }}</span>
       </div>
       <div class="header-actions">
-        <button class="btn btn-primary" [routerLink]="['/projects', project.id, 'iterations']">
+        <button class="btn btn-primary" [routerLink]="['/planning', project.id]">
           📊 Gestionar Iteraciones
         </button>
         <span class="status-badge" [ngClass]="getStatusClass(project.status)">

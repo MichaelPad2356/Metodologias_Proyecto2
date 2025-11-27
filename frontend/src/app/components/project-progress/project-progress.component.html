@@ -15,16 +15,16 @@
       <div class="total-progress">
         <div class="progress-header">
           <h4>Progreso Total</h4>
-          <span class="percentage">{{ progress.overallPercentage }}%</span>
+          <span class="percentage">{{ progress.progresoTotal.toFixed(0) }}%</span>
         </div>
         <div class="progress-bar-container">
           <div class="progress-bar" 
-               [class]="getProgressBarClass(progress.overallPercentage)"
-               [style.width]="getProgressWidth(progress.overallPercentage)">
+               [class]="getProgressBarClass(progress.progresoTotal)"
+               [style.width]="getProgressWidth(progress.progresoTotal)">
           </div>
         </div>
         <p class="task-count">
-          {{ getCompletedTasks() }} de {{ getTotalTasks() }} tareas completadas
+          {{ progress.tareasCompletadas }} de {{ progress.totalTareas }} tareas completadas
         </p>
       </div>
 
@@ -32,26 +32,26 @@
       <div class="phase-progress-section">
         <h4>Progreso por Fase</h4>
         
-        @if (progress.phaseProgress.length === 0) {
+        @if (progress.progresosPorFase.length === 0) {
           <div class="no-phases">
             No hay fases con tareas asignadas
           </div>
         }
 
-        @for (phase of progress.phaseProgress; track trackByPhaseId($index, phase)) {
+        @for (fase of progress.progresosPorFase; track fase.fase) {
           <div class="phase-item">
             <div class="phase-header">
-              <span class="phase-name">{{ phase.phaseName }}</span>
-              <span class="percentage">{{ phase.percentageCompleted }}%</span>
+              <span class="phase-name">{{ fase.fase }}</span>
+              <span class="percentage">{{ fase.porcentaje.toFixed(0) }}%</span>
             </div>
             <div class="progress-bar-container">
               <div class="progress-bar" 
-                   [class]="getProgressBarClass(phase.percentageCompleted)"
-                   [style.width]="getProgressWidth(phase.percentageCompleted)">
+                   [class]="getProgressBarClass(fase.porcentaje)"
+                   [style.width]="getProgressWidth(fase.porcentaje)">
               </div>
             </div>
             <p class="task-count">
-              {{ phase.completedTasks }} de {{ phase.totalTasks }} tareas completadas
+              {{ fase.completadas }} de {{ fase.total }} tareas completadas
             </p>
           </div>
         }

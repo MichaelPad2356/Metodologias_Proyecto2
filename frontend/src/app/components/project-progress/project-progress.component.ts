@@ -1,7 +1,20 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IterationService } from '../../services/iteration.service';
-import { ProjectProgress, PhaseProgress } from '../../models/iteration.model';
+import { ProjectService } from '../../services/project.service';
+
+interface ProgresoFase {
+  fase: string;
+  porcentaje: number;
+  completadas: number;
+  total: number;
+}
+
+interface ProgresoProyecto {
+  progresoTotal: number;
+  totalTareas: number;
+  tareasCompletadas: number;
+  progresosPorFase: ProgresoFase[];
+}
 
 @Component({
   selector: 'app-project-progress',
@@ -13,11 +26,11 @@ import { ProjectProgress, PhaseProgress } from '../../models/iteration.model';
 export class ProjectProgressComponent implements OnInit {
   @Input() projectId!: number;
   
-  progress: ProjectProgress | null = null;
+  progress: ProgresoProyecto | null = null;
   loading = false;
   error = '';
 
-  constructor(private iterationService: IterationService) {}
+  constructor(private projectService: ProjectService) {}
 
   ngOnInit(): void {
     console.log('[ProjectProgress] ngOnInit called with projectId:', this.projectId);
@@ -33,7 +46,7 @@ export class ProjectProgressComponent implements OnInit {
     this.loading = true;
     this.error = '';
     
-    this.iterationService.getProjectProgress(this.projectId).subscribe({
+    this.projectService.getProjectProgress(this.projectId).subscribe({
       next: (data) => {
         console.log('[ProjectProgress] Progress data received:', data);
         this.progress = data;
@@ -47,18 +60,6 @@ export class ProjectProgressComponent implements OnInit {
     });
   }
 
-  // Calcula el total de tareas desde las iteraciones recientes
-  getTotalTasks(): number {
-    if (!this.progress?.recentIterations) return 0;
-    return this.progress.recentIterations.reduce((sum, iter) => sum + iter.totalTasks, 0);
-  }
-
-  // Calcula las tareas completadas desde las iteraciones recientes
-  getCompletedTasks(): number {
-    if (!this.progress?.recentIterations) return 0;
-    return this.progress.recentIterations.reduce((sum, iter) => sum + iter.completedTasks, 0);
-  }
-
   getProgressBarClass(percentage: number): string {
     if (percentage === 100) return 'progress-complete';
     if (percentage >= 75) return 'progress-high';
@@ -69,9 +70,5 @@ export class ProjectProgressComponent implements OnInit {
 
   getProgressWidth(percentage: number): string {
     return `${Math.min(percentage, 100)}%`;
-  }
-
-  trackByPhaseId(index: number, phase: PhaseProgress): number {
-    return phase.phaseId;
   }
 }

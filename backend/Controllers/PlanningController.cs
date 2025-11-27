@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using backend.Models;
+using backend.Data;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -9,37 +12,112 @@ namespace backend.Controllers
     [Route("api/[controller]")]
     public class PlanningController : ControllerBase
     {
-        // Simulamos una base de datos en memoria (static) para que los datos no se borren entre peticiones
-        private static List<Iteracion> _iteraciones = new List<Iteracion>
-        {
-            // Datos de ejemplo para que veas algo en el dashboard
-            new Iteracion { Id = 1, Nombre = "Iteración 1", FaseOpenUP = "Elaboración", FechaInicio = DateTime.Now.AddDays(-14), FechaFin = DateTime.Now.AddDays(-1), Objetivo = "Base del proyecto", PuntosCompletados = 20, CapacidadEquipoHoras = 100 },
-            new Iteracion { Id = 2, Nombre = "Iteración 2", FaseOpenUP = "Construcción", FechaInicio = DateTime.Now, FechaFin = DateTime.Now.AddDays(14), Objetivo = "Implementar HU-015", PuntosEstimados = 15, CapacidadEquipoHoras = 80 }
-        };
+        private readonly ApplicationDbContext _context;
 
-        // HU-015: Obtener iteraciones (Dashboard)
-        [HttpGet]
-        public IActionResult GetIteraciones()
+        public PlanningController(ApplicationDbContext context)
         {
-            return Ok(_iteraciones);
+            _context = context;
+        }
+
+        // HU-015: Obtener iteraciones con sus tareas
+        [HttpGet]
+        public async Task<IActionResult> GetIteraciones([FromQuery] int? projectId)
+        {
+            var query = _context.Set<Iteracion>().AsQueryable();
+            
+            if (projectId.HasValue)
+            {
+                query = query.Where(i => i.ProjectId == projectId.Value);
+            }
+            
+            var iteraciones = await query.ToListAsync();
+            
+            // Deserializar las tareas desde JSON
+            foreach (var iteracion in iteraciones)
+            {
+                if (!string.IsNullOrEmpty(iteracion.TareasJson))
+                {
+                    iteracion.Tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson) ?? new List<Tarea>();
+                }
+            }
+            
+            return Ok(iteraciones);
         }
 
         // HU-015: Crear iteración
         [HttpPost]
-        public IActionResult CrearIteracion([FromBody] Iteracion nuevaIteracion)
+        public async Task<IActionResult> CrearIteracion([FromBody] Iteracion nuevaIteracion)
         {
-            nuevaIteracion.Id = _iteraciones.Count + 1;
-            _iteraciones.Add(nuevaIteracion);
+            // Serializar tareas a JSON
+            if (nuevaIteracion.Tareas != null && nuevaIteracion.Tareas.Any())
+            {
+                nuevaIteracion.TareasJson = JsonSerializer.Serialize(nuevaIteracion.Tareas);
+            }
+            
+            _context.Set<Iteracion>().Add(nuevaIteracion);
+            await _context.SaveChangesAsync();
+            
             return Ok(nuevaIteracion);
         }
 
-        // HU-016: Registrar capacidad y calcular velocidad
-        // Este endpoint devuelve la velocidad promedio histórica
-        [HttpGet("velocidad-historica")]
-        public IActionResult GetVelocidadHistorica()
+        // Actualizar iteración (incluyendo tareas)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarIteracion(int id, [FromBody] Iteracion iteracionActualizada)
         {
-            // Filtramos iteraciones pasadas que tengan puntos completados
-            var iteracionesPasadas = _iteraciones.Where(i => i.PuntosCompletados > 0).ToList();
+            var iteracion = await _context.Set<Iteracion>().FindAsync(id);
+            
+            if (iteracion == null)
+                return NotFound(new { mensaje = "Iteración no encontrada" });
+            
+            iteracion.Nombre = iteracionActualizada.Nombre;
+            iteracion.FechaInicio = iteracionActualizada.FechaInicio;
+            iteracion.FechaFin = iteracionActualizada.FechaFin;
+            iteracion.Objetivo = iteracionActualizada.Objetivo;
+            iteracion.FaseOpenUP = iteracionActualizada.FaseOpenUP;
+            iteracion.CapacidadEquipoHoras = iteracionActualizada.CapacidadEquipoHoras;
+            iteracion.PuntosEstimados = iteracionActualizada.PuntosEstimados;
+            iteracion.PuntosCompletados = iteracionActualizada.PuntosCompletados;
+            
+            // Actualizar tareas
+            if (iteracionActualizada.Tareas != null)
+            {
+                iteracion.TareasJson = JsonSerializer.Serialize(iteracionActualizada.Tareas);
+            }
+            
+            await _context.SaveChangesAsync();
+            
+            return Ok(iteracion);
+        }
+
+        // Eliminar iteración
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarIteracion(int id)
+        {
+            var iteracion = await _context.Set<Iteracion>().FindAsync(id);
+            
+            if (iteracion == null)
+                return NotFound(new { mensaje = "Iteración no encontrada" });
+            
+            _context.Set<Iteracion>().Remove(iteracion);
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { mensaje = "Iteración eliminada correctamente" });
+        }
+
+        // HU-016: Calcular velocidad histórica
+        [HttpGet("velocidad-historica")]
+        public async Task<IActionResult> GetVelocidadHistorica([FromQuery] int? projectId)
+        {
+            var query = _context.Set<Iteracion>().AsQueryable();
+            
+            if (projectId.HasValue)
+            {
+                query = query.Where(i => i.ProjectId == projectId.Value);
+            }
+            
+            var iteracionesPasadas = await query
+                .Where(i => i.PuntosCompletados > 0 && i.FechaFin < DateTime.Now)
+                .ToListAsync();
             
             if (!iteracionesPasadas.Any())
                 return Ok(new { velocidadPromedio = 0, mensaje = "No hay datos históricos suficientes" });
@@ -47,5 +125,73 @@ namespace backend.Controllers
             double velocidadPromedio = iteracionesPasadas.Average(i => i.PuntosCompletados);
             return Ok(new { velocidadPromedio });
         }
+
+        // Obtener progreso del proyecto basado en tareas
+        [HttpGet("progreso/{projectId}")]
+        public async Task<IActionResult> GetProgresoProyecto(int projectId)
+        {
+            var iteraciones = await _context.Set<Iteracion>()
+                .Where(i => i.ProjectId == projectId)
+                .ToListAsync();
+            
+            int totalTareas = 0;
+            int tareasCompletadas = 0;
+            var progresosPorFase = new Dictionary<string, ProgresoFase>();
+            
+            foreach (var iteracion in iteraciones)
+            {
+                if (!string.IsNullOrEmpty(iteracion.TareasJson))
+                {
+                    var tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson) ?? new List<Tarea>();
+                    
+                    foreach (var tarea in tareas)
+                    {
+                        totalTareas++;
+                        if (tarea.Estado == "Completada")
+                        {
+                            tareasCompletadas++;
+                        }
+                        
+                        // Agrupar por fase
+                        if (!string.IsNullOrEmpty(tarea.FaseProyecto))
+                        {
+                            if (!progresosPorFase.ContainsKey(tarea.FaseProyecto))
+                            {
+                                progresosPorFase[tarea.FaseProyecto] = new ProgresoFase { Fase = tarea.FaseProyecto };
+                            }
+                            
+                            progresosPorFase[tarea.FaseProyecto].Total++;
+                            if (tarea.Estado == "Completada")
+                            {
+                                progresosPorFase[tarea.FaseProyecto].Completadas++;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            var progresoTotal = totalTareas > 0 ? (tareasCompletadas * 100.0 / totalTareas) : 0;
+            
+            return Ok(new
+            {
+                progresoTotal,
+                totalTareas,
+                tareasCompletadas,
+                progresosPorFase = progresosPorFase.Values.Select(p => new
+                {
+                    fase = p.Fase,
+                    porcentaje = p.Total > 0 ? (p.Completadas * 100.0 / p.Total) : 0,
+                    completadas = p.Completadas,
+                    total = p.Total
+                })
+            });
+        }
+    }
+    
+    public class ProgresoFase
+    {
+        public string Fase { get; set; } = string.Empty;
+        public int Total { get; set; }
+        public int Completadas { get; set; }
     }
 }

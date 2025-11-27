@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProjectPlanVersion> ProjectPlanVersions { get; set; }
     public DbSet<Iteration> Iterations { get; set; }
     public DbSet<IterationTask> IterationTasks { get; set; }
+    public DbSet<Iteracion> Iteraciones { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,13 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ProjectPhaseId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Iteracion configuration
+        modelBuilder.Entity<Iteracion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TareasJson).HasColumnType("TEXT");
         });
     }
 }

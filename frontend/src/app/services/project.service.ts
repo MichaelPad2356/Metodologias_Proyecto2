@@ -126,4 +126,11 @@ export class ProjectService {
   getProjectPhases(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${projectId}/phases`);
   }
+
+  /**
+   * Obtiene el progreso del proyecto basado en tareas de iteraciones
+   */
+  getProjectProgress(projectId: number): Observable<any> {
+    return this.http.get<any>(`/api/planning/progreso/${projectId}`);
+  }
 }
