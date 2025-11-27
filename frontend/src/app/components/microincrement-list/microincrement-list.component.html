@@ -1,0 +1,64 @@
+<div class="microincrement-list-container">
+  <h2>Microincrementos</h2>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Filtrar por Iteración:</label>
+      <input type="number" [(ngModel)]="filterPhaseId" (change)="onFilterChange()" placeholder="ID de fase">
+    </div>
+    <div class="filter-group">
+      <label>Filtrar por Entregable:</label>
+      <input type="number" [(ngModel)]="filterDeliverableId" (change)="onFilterChange()" placeholder="ID de entregable">
+    </div>
+    <div class="filter-group">
+      <label>Filtrar por Autor:</label>
+      <input type="text" [(ngModel)]="filterAuthor" (change)="onFilterChange()" placeholder="Nombre del autor">
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="error-message">{{ error }}</div>
+  }
+  @if (loading) {
+    <div class="loading">Cargando...</div>
+  }
+
+  @if (!loading && filteredMicroincrements.length > 0) {
+    <table class="microincrements-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Fecha</th>
+          <th>Autor</th>
+          <th>Fase ID</th>
+          <th>Entregable ID</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (micro of filteredMicroincrements; track micro) {
+          <tr>
+            <td>{{ micro.id }}</td>
+            <td>{{ micro.title }}</td>
+            <td>{{ micro.description || 'N/A' }}</td>
+            <td>{{ micro.date | date:'short' }}</td>
+            <td>{{ micro.author }}</td>
+            <td>{{ micro.projectPhaseId }}</td>
+            <td>{{ micro.deliverableId || 'N/A' }}</td>
+            <td>
+              <button (click)="deleteMicroincrement(micro.id)" class="btn-delete">Eliminar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (!loading && filteredMicroincrements.length === 0) {
+    <div class="no-data">
+      No hay microincrementos disponibles
+    </div>
+  }
+</div>

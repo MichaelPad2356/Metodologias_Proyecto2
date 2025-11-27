@@ -182,59 +182,38 @@
   gap: 1rem;
 }
 
+.phase-item-container {
+  background: white;
+  border-radius: 1rem; // Redondea todo el contenedor
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  overflow: hidden; // Importante para que los hijos no se salgan de los bordes redondeados
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+  }
+}
+
 .phase-item {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem;
-  border-radius: 1rem;
-  border: 2px solid transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    transition: all 0.3s ease;
-  }
+  // Quitamos bordes y fondos de aquí, ya que los maneja el contenedor
+  border-bottom: 1px solid #e5e7eb; // Línea divisoria
+  transition: background-color 0.3s ease;
 
   &:hover {
-    transform: translateX(8px);
+    background-color: #f9fafb; // Un ligero color al pasar el mouse
   }
+}
 
-  &.phase-not-started {
-    background: rgba(156, 163, 175, 0.1);
-    border-color: #e5e7eb;
-
-    &::before {
-      background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
-    }
-  }
-
-  &.phase-in-progress {
-    background: rgba(251, 191, 36, 0.1);
-    border-color: #fbbf24;
-    box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
-
-    &::before {
-      background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
-    }
-  }
-
-  &.phase-completed {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: #10b981;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
-
-    &::before {
-      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-    }
-  }
+// El área donde vive el componente de artefactos
+.artifacts-for-phase {
+  padding: 0; // El padding lo manejará el componente hijo
+  background-color: #fdfdff; // Un color de fondo ligeramente distinto para diferenciar
 }
 
 .phase-number {
@@ -374,6 +353,16 @@
     margin: 0 0 1.5rem 0;
     color: #666;
   }
+}
+
+.artifacts-for-phase {
+  padding: 0 1rem 1rem 1rem; // Añade algo de espacio alrededor
+  background-color: #fff;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
 }
 
 @media (max-width: 768px) {

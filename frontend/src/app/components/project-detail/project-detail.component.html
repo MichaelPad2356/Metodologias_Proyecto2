@@ -134,17 +134,23 @@
       <div class="card phases-card">
         <h2>Fases de OpenUP</h2>
         <div class="phases-list">
-          @for (phase of project.phases; track phase.id) {
-            <div
-              class="phase-item"
-              [ngClass]="getPhaseStatusClass(phase.status)"
-              >
-              <div class="phase-number">{{ phase.order }}</div>
-              <div class="phase-info">
-                <h3>{{ phase.name }}</h3>
-                <span class="phase-status">
-                  {{ getPhaseStatusLabel(phase.status) }}
-                </span>
+          @for (phase of project.phases; track phase) {
+            <div class="phase-item-container">
+              <div
+                class="phase-item"
+                [ngClass]="getPhaseStatusClass(phase.status)"
+                >
+                <div class="phase-number">{{ phase.order }}</div>
+                <div class="phase-info">
+                  <h3>{{ phase.name }}</h3>
+                  <span class="phase-status">
+                    {{ getPhaseStatusLabel(phase.status) }}
+                  </span>
+                </div>
+              </div>
+              <!-- ARTEFACTOS PARA ESTA FASE -->
+              <div class="artifacts-for-phase">
+                <app-artifacts-manager [phaseId]="phase.id"></app-artifacts-manager>
               </div>
             </div>
           }

@@ -1,6 +1,8 @@
 using backend.Data;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,21 +17,24 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 builder.Services.AddScoped<IPlanVersionService, PlanVersionService>();
 builder.Services.AddScoped<IIterationService, IterationService>();
+builder.Services.AddScoped<IMicroincrementService, MicroincrementService>();
 
 // Configurar CORS para desarrollo
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularDev", policy =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        builder.WithOrigins("http://localhost:4200")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
 });
+
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
 
 var app = builder.Build();
 
@@ -45,10 +50,25 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowAngularDev");
-
 app.UseHttpsRedirection();
 
+// >> CÓDIGO MODIFICADO <<
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+// >> FIN DE LA MODIFICACIÓN <<
+
+app.UseCors("AllowFrontend");
+app.UseRouting();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink, RouterModule } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
 import { CreateProjectRequest } from '../../models/project.model';
 
 @Component({
   selector: 'app-project-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [FormsModule, RouterModule, RouterLink],
   templateUrl: './project-create.component.html',
   styleUrls: ['./project-create.component.scss']
 })
