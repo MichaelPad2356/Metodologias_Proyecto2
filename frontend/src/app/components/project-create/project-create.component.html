@@ -1,0 +1,225 @@
+<div class="project-create-container">
+  <header class="page-header">
+    <h1>Crear Nuevo Proyecto OpenUP</h1>
+  </header>
+
+  <div class="card">
+    <form (ngSubmit)="onSubmit()" #projectForm="ngForm">
+      @if (error) {
+        <div class="error-message">
+          {{ error }}
+        </div>
+      }
+
+      <div class="form-section">
+        <h3>Información Básica</h3>
+
+        <div class="form-group">
+          <label for="name">
+            Nombre del Proyecto <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [(ngModel)]="formData.name"
+            required
+            maxlength="200"
+            placeholder="Ej: Sistema de Gestión de Proyectos"
+            [disabled]="loading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="code">
+              Código del Proyecto <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              [(ngModel)]="formData.code"
+              required
+              maxlength="50"
+              placeholder="Ej: PROJ-2025-001"
+              [disabled]="loading"
+              />
+              <small class="form-hint">Debe ser único en el sistema</small>
+            </div>
+
+            <div class="form-group">
+              <label for="startDate">
+                Fecha de Inicio <span class="required">*</span>
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                name="startDate"
+                [(ngModel)]="formData.startDate"
+                required
+                [disabled]="loading"
+                />
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>Información Adicional</h3>
+
+              <div class="form-group">
+                <label for="responsiblePerson">Responsable del Proyecto</label>
+                <input
+                  type="text"
+                  id="responsiblePerson"
+                  name="responsiblePerson"
+                  [(ngModel)]="formData.responsiblePerson"
+                  maxlength="200"
+                  placeholder="Nombre del coordinador o responsable"
+                  [disabled]="loading"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Descripción</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    [(ngModel)]="formData.description"
+                    rows="4"
+                    maxlength="1000"
+                    placeholder="Describe el objetivo y alcance del proyecto..."
+                    [disabled]="loading"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="tags">Etiquetas</label>
+                  <input
+                    type="text"
+                    id="tags"
+                    name="tags"
+                    [(ngModel)]="formData.tags"
+                    maxlength="500"
+                    placeholder="Ej: backend, frontend, web, mobile"
+                    [disabled]="loading"
+                    />
+                    <small class="form-hint">Separa las etiquetas con comas</small>
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <h3>Plan del Proyecto</h3>
+
+                  <div class="form-group">
+                    <label for="objetivos">Objetivos</label>
+                    <textarea
+                      id="objetivos"
+                      name="objetivos"
+                      [(ngModel)]="formData.objetivos"
+                      rows="3"
+                      maxlength="2000"
+                      placeholder="Objetivos del proyecto"
+                      [disabled]="loading"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="alcance">Alcance</label>
+                    <textarea
+                      id="alcance"
+                      name="alcance"
+                      [(ngModel)]="formData.alcance"
+                      rows="3"
+                      maxlength="2000"
+                      placeholder="Alcance del proyecto"
+                      [disabled]="loading"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label>📅 Cronograma Inicial</label>
+                    <div class="cronograma-list">
+                      @for (item of cronogramaItems; track $index; let i = $index) {
+                        <div class="cronograma-item">
+                          <div class="cronograma-inputs">
+                            <input type="date" [name]="'cronogramaDate_' + i" [(ngModel)]="cronogramaItems[i].date" [disabled]="loading" class="form-control" />
+                            <textarea rows="2" [name]="'cronogramaDesc_' + i" [(ngModel)]="cronogramaItems[i].description" placeholder="Descripción del evento o hito..." [disabled]="loading" class="form-control"></textarea>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-danger" (click)="removeCronogramaItem(i)" [disabled]="loading">🗑️</button>
+                        </div>
+                      }
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addCronogramaItem()" [disabled]="loading">➕ Agregar fecha clave</button>
+                      <small class="form-hint">💡 Agrega fechas importantes del proyecto con su descripción</small>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>👥 Responsables</label>
+                    <div class="responsables-list">
+                      @for (r of responsablesList; track $index; let i = $index) {
+                        <div class="responsable-item">
+                          <input type="text" [name]="'responsable_' + i" [(ngModel)]="responsablesList[i]" placeholder="Ej: Juan Pérez - Líder Técnico" [disabled]="loading" class="form-control" />
+                          <button type="button" class="btn btn-sm btn-danger" (click)="removeResponsable(i)" [disabled]="loading">🗑️</button>
+                        </div>
+                      }
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addResponsable()" [disabled]="loading">➕ Agregar responsable</button>
+                      <small class="form-hint">💡 Incluye nombre completo y rol en el proyecto</small>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>🎯 Hitos del Proyecto</label>
+                    <div class="hitos-list">
+                      @for (h of hitosList; track $index; let i = $index) {
+                        <div class="hito-item">
+                          <span class="hito-number">{{ i + 1 }}</span>
+                          <input type="text" [name]="'hito_' + i" [(ngModel)]="hitosList[i]" placeholder="Ej: Lanzamiento versión beta" [disabled]="loading" class="form-control" />
+                          <div class="hito-actions">
+                            <button type="button" class="btn btn-sm btn-icon" (click)="moveHitoUp(i)" [disabled]="loading || i === 0" title="Subir">⬆️</button>
+                            <button type="button" class="btn btn-sm btn-icon" (click)="moveHitoDown(i)" [disabled]="loading || i === hitosList.length - 1" title="Bajar">⬇️</button>
+                            <button type="button" class="btn btn-sm btn-danger" (click)="removeHito(i)" [disabled]="loading">🗑️</button>
+                          </div>
+                        </div>
+                      }
+                      <button type="button" class="btn btn-secondary btn-add" (click)="addHito()" [disabled]="loading">➕ Agregar hito</button>
+                      <small class="form-hint">💡 Define los hitos principales y ordénalos con las flechas</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="info-box">
+                  <strong>ℹ️ Nota:</strong> Al crear el proyecto, se generarán automáticamente las cuatro fases de OpenUP:
+                  <ul>
+                    <li>Incepción</li>
+                    <li>Elaboración</li>
+                    <li>Construcción</li>
+                    <li>Transición</li>
+                  </ul>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    (click)="onCancel()"
+                    [disabled]="loading"
+                    >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    [disabled]="loading || !projectForm.form.valid"
+                    >
+                    {{ loading ? 'Creando...' : 'Crear Proyecto' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- BOTÓN DE MICROINCREMENTOS -->
+            <div style="text-align: center; margin-top: 3rem;">
+              <a routerLink="/microincrements/new" class="btn btn-microincrement">
+                📊 Ir a Microincrementos
+              </a>
+            </div>
+          </div>

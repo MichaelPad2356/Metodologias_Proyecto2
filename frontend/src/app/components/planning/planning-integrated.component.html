@@ -1,0 +1,298 @@
+<div class="planning-container">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>Planificación de Iteraciones</h1>
+      <p>Gestiona el ciclo de vida del proyecto y monitorea la velocidad del equipo</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalIteracion()">
+      ➕ Nueva Iteración
+    </button>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="metrics-grid">
+    <div class="metric-card velocity">
+      <div class="metric-value">{{ velocidad | number:'1.0-1' }}</div>
+      <div class="metric-label">Velocidad Promedio</div>
+      <div class="metric-sub">Puntos completados por iteración</div>
+    </div>
+
+    <div class="metric-card iterations">
+      <div class="metric-value">{{ iteraciones.length }}</div>
+      <div class="metric-label">Iteraciones Totales</div>
+      <div class="metric-sub">Registradas en el sistema</div>
+    </div>
+
+    <div class="metric-card tasks">
+      <div class="metric-value">{{ getTotalTareas() }}</div>
+      <div class="metric-label">Tareas Totales</div>
+      <div class="metric-sub">Distribuidas en iteraciones</div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  @if (loading) {
+    <div class="loading">Cargando iteraciones...</div>
+  }
+
+  <!-- LISTA DE ITERACIONES -->
+  @if (!loading && iteraciones.length === 0) {
+    <div class="empty-state">
+      <h3>No hay iteraciones registradas</h3>
+      <p>Crea tu primera iteración para comenzar</p>
+    </div>
+  }
+
+  @if (!loading && iteraciones.length > 0) {
+    <div class="iterations-list">
+      @for (iteracion of iteraciones; track iteracion.id) {
+        <div class="iteration-card">
+          <!-- HEADER ITERACIÓN -->
+          <div class="iteration-header">
+            <div class="iteration-info">
+              <h2>{{ iteracion.nombre }}</h2>
+              <span class="badge" [ngClass]="getBadgeClass(iteracion.faseOpenUP)">
+                {{ iteracion.faseOpenUP }}
+              </span>
+              <div class="iteration-dates">
+                📅 {{ iteracion.fechaInicio | date:'dd/MM' }} - {{ iteracion.fechaFin | date:'dd/MM/yyyy' }}
+              </div>
+            </div>
+            <div class="iteration-stats">
+              <div class="stat">
+                <span class="stat-label">Capacidad</span>
+                <span class="stat-value">{{ iteracion.capacidadEquipoHoras }}h</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Puntos</span>
+                <span class="stat-value">{{ iteracion.puntosCompletados }}/{{ iteracion.puntosEstimados }}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Progreso</span>
+                <span class="stat-value">{{ getProgresoIteracion(iteracion) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BARRA DE PROGRESO -->
+          <div class="progress-bar-container">
+            <div class="progress-bar" [style.width]="getProgresoIteracion(iteracion) + '%'"></div>
+          </div>
+
+          <!-- OBJETIVO -->
+          @if (iteracion.objetivo) {
+            <div class="iteration-objective">
+              <strong>Objetivo:</strong> {{ iteracion.objetivo }}
+            </div>
+          }
+
+          <!-- TAREAS -->
+          <div class="tasks-section">
+            <div class="tasks-header">
+              <h3>📋 Tareas ({{ iteracion.tareas.length }})</h3>
+              <button class="btn btn-sm btn-secondary" (click)="abrirModalTarea(iteracion.id)">
+                ➕ Agregar Tarea
+              </button>
+            </div>
+
+            @if (iteracion.tareas.length === 0) {
+              <div class="no-tasks">No hay tareas asignadas a esta iteración</div>
+            }
+
+            @if (iteracion.tareas.length > 0) {
+              <div class="tasks-grid">
+                @for (tarea of iteracion.tareas; track tarea.id) {
+                  <div class="task-card">
+                    <div class="task-header">
+                      <div>
+                        <h4>{{ tarea.nombre }}</h4>
+                        <span class="task-badge" [ngClass]="getEstadoClass(tarea.estado)">
+                          {{ getEstadoLabel(tarea.estado) }}
+                        </span>
+                        @if (tarea.faseProyecto) {
+                          <span class="task-phase">{{ tarea.faseProyecto }}</span>
+                        }
+                      </div>
+                      <div class="task-actions">
+                        <button class="btn-icon" (click)="abrirModalTarea(iteracion.id, tarea)" title="Editar">
+                          ✏️
+                        </button>
+                        <button class="btn-icon btn-danger" (click)="eliminarTarea(iteracion.id, tarea.id)" title="Eliminar">
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    @if (tarea.descripcion) {
+                      <p class="task-description">{{ tarea.descripcion }}</p>
+                    }
+
+                    <div class="task-details">
+                      @if (tarea.asignadoA) {
+                        <span>👤 {{ tarea.asignadoA }}</span>
+                      }
+                      @if (tarea.fechaInicio) {
+                        <span>📅 {{ tarea.fechaInicio | date:'dd/MM' }}</span>
+                      }
+                      <span class="task-progress">{{ tarea.porcentajeCompletado }}% completado</span>
+                    </div>
+
+                    <div class="task-progress-bar">
+                      <div class="progress-fill" [style.width]="tarea.porcentajeCompletado + '%'"></div>
+                    </div>
+
+                    @if (tarea.bloqueos) {
+                      <div class="task-blockages">
+                        ⚠️ {{ tarea.bloqueos }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- MODAL ITERACIÓN -->
+@if (showIterationModal) {
+  <div class="modal-overlay" (click)="cerrarModalIteracion()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingIteration ? 'Editar Iteración' : 'Nueva Iteración' }}</h2>
+        <button class="close-btn" (click)="cerrarModalIteracion()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input [(ngModel)]="nuevaIteracion.nombre" type="text" class="form-control" placeholder="Ej: Sprint 1">
+          </div>
+
+          <div class="form-group">
+            <label>Fase OpenUP *</label>
+            <select [(ngModel)]="nuevaIteracion.faseOpenUP" class="form-control">
+              <option value="">Seleccionar...</option>
+              <option value="Inicio">Inicio</option>
+              <option value="Elaboración">Elaboración</option>
+              <option value="Construcción">Construcción</option>
+              <option value="Transición">Transición</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha Inicio</label>
+            <input [(ngModel)]="nuevaIteracion.fechaInicio" type="date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Fecha Fin</label>
+            <input [(ngModel)]="nuevaIteracion.fechaFin" type="date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Capacidad (horas)</label>
+            <input [(ngModel)]="nuevaIteracion.capacidadEquipoHoras" type="number" class="form-control" placeholder="0">
+          </div>
+
+          <div class="form-group">
+            <label>Puntos Estimados</label>
+            <input [(ngModel)]="nuevaIteracion.puntosEstimados" type="number" class="form-control" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Objetivo</label>
+          <textarea [(ngModel)]="nuevaIteracion.objetivo" class="form-control" rows="3" placeholder="Describe el objetivo de esta iteración..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalIteracion()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarIteracion()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL TAREA -->
+@if (showTaskModal) {
+  <div class="modal-overlay" (click)="cerrarModalTarea()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingTask ? 'Editar Tarea' : 'Nueva Tarea' }}</h2>
+        <button class="close-btn" (click)="cerrarModalTarea()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input [(ngModel)]="nuevaTarea.nombre" type="text" class="form-control" placeholder="Nombre de la tarea">
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="nuevaTarea.descripcion" class="form-control" rows="3" placeholder="Descripción de la tarea..."></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fase del Proyecto</label>
+            <select [(ngModel)]="nuevaTarea.faseProyecto" class="form-control">
+              <option value="">Sin fase asignada</option>
+              <option value="Incepción">Incepción</option>
+              <option value="Elaboración">Elaboración</option>
+              <option value="Construcción">Construcción</option>
+              <option value="Transición">Transición</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Estado *</label>
+            <select [(ngModel)]="nuevaTarea.estado" class="form-control">
+              <option value="NoIniciada">No iniciada</option>
+              <option value="EnProgreso">En progreso</option>
+              <option value="Completada">Completada</option>
+              <option value="Bloqueada">Bloqueada</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha Inicio</label>
+            <input [(ngModel)]="nuevaTarea.fechaInicio" type="date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Fecha Fin</label>
+            <input [(ngModel)]="nuevaTarea.fechaFin" type="date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Asignado a</label>
+            <input [(ngModel)]="nuevaTarea.asignadoA" type="text" class="form-control" placeholder="Nombre del responsable">
+          </div>
+
+          <div class="form-group">
+            <label>% Completado</label>
+            <input [(ngModel)]="nuevaTarea.porcentajeCompletado" type="number" min="0" max="100" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Bloqueos</label>
+          <textarea [(ngModel)]="nuevaTarea.bloqueos" class="form-control" rows="2" placeholder="Describe cualquier bloqueo o impedimento..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalTarea()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarTarea()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,84 @@
+<div class="artifacts-container">
+  
+  <!-- Lista de Artefactos (siempre visible) -->
+  <div class="artifacts-list">
+    <div class="artifacts-header">
+      <h6 class="artifacts-title">Artefactos</h6>
+      <button 
+        class="btn btn-outline-primary btn-sm add-btn" 
+        type="button" 
+        data-bs-toggle="collapse" 
+        [attr.data-bs-target]="'#form' + phaseId" 
+        aria-expanded="false">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+
+    <!-- Lista de artefactos existentes -->
+    <div *ngIf="artifacts.length === 0" class="no-artifacts">
+      <small class="text-muted">No hay artefactos registrados</small>
+    </div>
+    
+    <div *ngFor="let artifact of artifacts" class="artifact-item">
+      <div class="artifact-info">
+        <span class="artifact-type">{{ artifact.typeName }}</span>
+        <span class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
+          {{ artifact.statusName }}
+        </span>
+      </div>
+      <small class="text-muted">{{ artifact.isMandatory ? 'Obligatorio' : 'Opcional' }}</small>
+    </div>
+  </div>
+
+  <!-- Formulario colapsable (solo aparece al hacer clic en +) -->
+  <div class="collapse" [id]="'form' + phaseId">
+    <div class="form-container">
+      <div class="form-header">
+        <h6>Nuevo Artefacto</h6>
+      </div>
+      <form [formGroup]="artifactForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-12 mb-3">
+            <label for="type" class="form-label">Tipo</label>
+            <select id="type" class="form-select form-select-sm" formControlName="type">
+              <option [ngValue]="null" disabled>Seleccione...</option>
+              <option *ngFor="let type of artifactTypes" [ngValue]="type.value">
+                {{ type.key }}
+              </option>
+            </select>
+          </div>
+          <div class="col-12 mb-3">
+            <label for="author" class="form-label">Autor</label>
+            <input type="text" id="author" class="form-control form-control-sm" formControlName="author">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="content" class="form-label">Contenido (Opcional)</label>
+          <textarea id="content" class="form-control form-control-sm" rows="2" formControlName="content"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="fileInput" class="form-label">Archivo (Opcional)</label>
+          <input type="file" id="fileInput" class="form-control form-control-sm" (change)="onFileSelected($event)">
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="isMandatory" formControlName="isMandatory">
+          <label class="form-check-label" for="isMandatory">
+            Es obligatorio
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="artifactForm.invalid">
+            Guardar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary btn-sm" 
+            data-bs-toggle="collapse" 
+            [attr.data-bs-target]="'#form' + phaseId">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
