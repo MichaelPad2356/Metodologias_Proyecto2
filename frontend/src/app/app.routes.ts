@@ -6,6 +6,7 @@ import { PlanningIntegratedComponent } from './components/planning/planning-inte
 import { HomeComponent } from './home.component';
 import { MicroincrementListComponent } from './components/microincrement-list/microincrement-list.component';
 import { MicroincrementCreateComponent } from './components/microincrement-create/microincrement-create.component';
+import { TransitionArtifactsComponent } from './components/transition-artifacts/transition-artifacts.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'projects', component: ProjectListComponent },
   { path: 'projects/new', component: ProjectCreateComponent },
   { path: 'projects/:id', component: ProjectDetailComponent },
+  { path: 'projects/:id/transition', component: TransitionArtifactsComponent },
   { path: 'microincrements', component: MicroincrementListComponent },
   { path: 'microincrements/new', component: MicroincrementCreateComponent },
   { path: '**', redirectTo: '/' }

@@ -45,7 +45,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("Artifacts");
+                    b.ToTable("Artifacts", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.ArtifactVersion", b =>
@@ -84,7 +84,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ArtifactId");
 
-                    b.ToTable("ArtifactVersions");
+                    b.ToTable("ArtifactVersions", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.AuditLog", b =>
@@ -124,7 +124,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Deliverable", b =>
@@ -152,7 +152,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("Deliverables");
+                    b.ToTable("Deliverables", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Iteracion", b =>
@@ -197,7 +197,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Iteraciones");
+                    b.ToTable("Iteraciones", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Iteration", b =>
@@ -238,7 +238,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Iterations");
+                    b.ToTable("Iterations", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.IterationTask", b =>
@@ -291,7 +291,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("IterationTasks");
+                    b.ToTable("IterationTasks", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Microincrement", b =>
@@ -335,7 +335,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("Microincrements");
+                    b.ToTable("Microincrements", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Project", b =>
@@ -407,7 +407,7 @@ namespace backend.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.ProjectPhase", b =>
@@ -438,7 +438,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("ProjectPhases");
+                    b.ToTable("ProjectPhases", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.ProjectPlanVersion", b =>
@@ -489,7 +489,7 @@ namespace backend.Migrations
                     b.HasIndex("ProjectId", "Version")
                         .IsUnique();
 
-                    b.ToTable("ProjectPlanVersions");
+                    b.ToTable("ProjectPlanVersions", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Artifact", b =>

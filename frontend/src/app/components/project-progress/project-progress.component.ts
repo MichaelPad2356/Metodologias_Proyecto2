@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../services/project.service';
 
@@ -23,7 +23,7 @@ interface ProgresoProyecto {
   templateUrl: './project-progress.component.html',
   styleUrl: './project-progress.component.scss'
 })
-export class ProjectProgressComponent implements OnInit {
+export class ProjectProgressComponent implements OnInit, OnChanges {
   @Input() projectId!: number;
   
   progress: ProgresoProyecto | null = null;
@@ -38,6 +38,19 @@ export class ProjectProgressComponent implements OnInit {
       this.loadProgress();
     } else {
       console.warn('[ProjectProgress] No projectId provided!');
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectId'] && !changes['projectId'].firstChange && this.projectId) {
+      this.loadProgress();
+    }
+  }
+
+  // Método público para refrescar desde fuera
+  refresh(): void {
+    if (this.projectId) {
+      this.loadProgress();
     }
   }
 

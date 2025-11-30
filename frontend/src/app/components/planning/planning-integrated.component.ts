@@ -187,8 +187,29 @@ export class PlanningIntegratedComponent implements OnInit {
     // Recalcular progreso de la iteración
     this.recalcularProgresoIteracion(iteracion);
     
-    alert('✅ Tarea guardada correctamente');
-    this.cerrarModalTarea();
+    // Persistir cambios en el backend
+    this.actualizarIteracionEnBackend(iteracion);
+  }
+
+  actualizarIteracionEnBackend(iteracion: Iteracion) {
+    const dataToSend = {
+      ...iteracion,
+      tareas: iteracion.tareas,
+      projectId: this.projectId
+    };
+
+    this.planningService.actualizarIteracion(iteracion.id, dataToSend).subscribe({
+      next: () => {
+        alert('✅ Cambios guardados correctamente');
+        this.cerrarModalTarea();
+        // Recargar datos para actualizar métricas (velocidad, etc.)
+        this.cargarDatos();
+      },
+      error: (err) => {
+        console.error('Error al guardar:', err);
+        alert('❌ Error al guardar los cambios: ' + (err.error?.mensaje || err.message));
+      }
+    });
   }
 
   eliminarTarea(iteracionId: number, tareaId: number) {
@@ -199,7 +220,27 @@ export class PlanningIntegratedComponent implements OnInit {
 
     iteracion.tareas = iteracion.tareas.filter(t => t.id !== tareaId);
     this.recalcularProgresoIteracion(iteracion);
-    alert('✅ Tarea eliminada');
+    
+    // Persistir cambios en el backend
+    const dataToSend = {
+      ...iteracion,
+      tareas: iteracion.tareas,
+      projectId: this.projectId
+    };
+
+    this.planningService.actualizarIteracion(iteracion.id, dataToSend).subscribe({
+      next: () => {
+        alert('✅ Tarea eliminada correctamente');
+        // Recargar datos para actualizar métricas
+        this.cargarDatos();
+      },
+      error: (err) => {
+        console.error('Error al eliminar:', err);
+        alert('❌ Error al eliminar: ' + (err.error?.mensaje || err.message));
+        // Recargar datos para sincronizar
+        this.cargarDatos();
+      }
+    });
   }
 
   recalcularProgresoIteracion(iteracion: Iteracion) {

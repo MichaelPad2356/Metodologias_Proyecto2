@@ -32,7 +32,13 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar JSON para usar camelCase (compatible con frontend)
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddOpenApi();
 
 
@@ -46,6 +52,48 @@ if (app.Environment.IsDevelopment())
     
     // Asegurarse de que la base de datos y tablas existan
     context.Database.EnsureCreated();
+    
+    // HU-009: Agregar columnas de transición si no existen
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE Artifacts ADD COLUMN BuildIdentifier TEXT NULL;
+        ");
+    }
+    catch { /* La columna ya existe */ }
+    
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE Artifacts ADD COLUMN BuildDownloadUrl TEXT NULL;
+        ");
+    }
+    catch { /* La columna ya existe */ }
+    
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE Artifacts ADD COLUMN ClosureChecklistJson TEXT NULL;
+        ");
+    }
+    catch { /* La columna ya existe */ }
+    
+    // HU-010: Agregar columnas de control de versiones
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE ArtifactVersions ADD COLUMN Observations TEXT NULL;
+        ");
+    }
+    catch { /* La columna ya existe */ }
+    
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE ArtifactVersions ADD COLUMN FileSize INTEGER NULL;
+        ");
+    }
+    catch { /* La columna ya existe */ }
     
     app.MapOpenApi();
 }
