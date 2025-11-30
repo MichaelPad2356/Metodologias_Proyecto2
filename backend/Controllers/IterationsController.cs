@@ -119,6 +119,86 @@ public class IterationsController : ControllerBase
         _logger.LogInformation("Iteración eliminada: ID {IterationId}", id);
         return Ok(new { message = "Iteración eliminada exitosamente", success = true });
     }
+}
+
+/// <summary>
+/// Controlador alternativo para iteraciones sin contexto de proyecto
+/// </summary>
+[ApiController]
+[Route("api/iterations")]
+public class IterationsStandaloneController : ControllerBase
+{
+    private readonly IIterationService _iterationService;
+    private readonly ILogger<IterationsStandaloneController> _logger;
+
+    public IterationsStandaloneController(
+        IIterationService iterationService,
+        ILogger<IterationsStandaloneController> logger)
+    {
+        _iterationService = iterationService;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Obtiene una iteración por ID
+    /// </summary>
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(IterationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetIterationById(int id)
+    {
+        var result = await _iterationService.GetIterationByIdAsync(id);
+        
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Actualiza una iteración
+    /// </summary>
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(IterationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateIteration(int id, [FromBody] UpdateIterationDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _iterationService.UpdateIterationAsync(id, dto);
+
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Iteración actualizada: ID {IterationId}", id);
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Elimina una iteración
+    /// </summary>
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteIteration(int id)
+    {
+        var result = await _iterationService.DeleteIterationAsync(id);
+
+        if (!result.Success)
+        {
+            return NotFound(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Iteración eliminada: ID {IterationId}", id);
+        return Ok(new { message = "Iteración eliminada exitosamente", success = true });
+    }
 
     /// <summary>
     /// Crea una tarea en una iteración

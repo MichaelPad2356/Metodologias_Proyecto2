@@ -41,14 +41,14 @@ public class ProjectService : IProjectService
                 Hitos = dto.Hitos,
             ResponsiblePerson = dto.ResponsiblePerson,
             Tags = dto.Tags,
-            Status = ProjectStatus.Created,
+            Status = ProjectStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
 
         // Crear las 4 fases predeterminadas de OpenUP
         var phases = new List<ProjectPhase>
         {
-            new() { Name = "Incepción", Order = 1, Status = PhaseStatus.NotStarted },
+            new() { Name = "Inicio", Order = 1, Status = PhaseStatus.NotStarted },
             new() { Name = "Elaboración", Order = 2, Status = PhaseStatus.NotStarted },
             new() { Name = "Construcción", Order = 3, Status = PhaseStatus.NotStarted },
             new() { Name = "Transición", Order = 4, Status = PhaseStatus.NotStarted }
@@ -296,18 +296,18 @@ public class ProjectService : IProjectService
         var projectName = project.Name;
         var projectCode = project.Code;
 
-        _context.Projects.Remove(project);
-        await _context.SaveChangesAsync();
-
-        // Registrar en auditoría antes de eliminar (el log quedará huérfano pero es intencional)
+        // Registrar en auditoría antes de eliminar
         await _auditService.LogActionAsync(
             id,
             "DeleteProject",
             "Project",
             id,
             userName,
-            $"Proyecto '{projectName}' (código: '{projectCode}') eliminado permanentemente"
+            $"Proyecto '{projectName}' (código: '{projectCode}') será eliminado permanentemente"
         );
+
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
 
         return Result<bool>.Ok(true);
     }

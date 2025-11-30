@@ -20,7 +20,7 @@ public class IterationService : IIterationService
             .Include(i => i.Tasks)
                 .ThenInclude(t => t.ProjectPhase)
             .Where(i => i.ProjectId == projectId)
-            .OrderByDescending(i => i.StartDate)
+            .OrderBy(i => i.StartDate)
             .ToListAsync();
 
         var dtos = iterations.Select(MapToDto).ToList();

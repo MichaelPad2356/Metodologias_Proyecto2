@@ -56,6 +56,7 @@ public class ProjectsController : ControllerBase
     /// Obtiene un proyecto por código
     /// </summary>
     [HttpGet("by-code/{code}")]
+    [HttpGet("code/{code}")] // Ruta alternativa corta
     [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProjectByCode(string code)
