@@ -2,9 +2,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.Models;
 
+public enum ArtifactType
+{
+    Document,
+    Diagram,
+    Code,
+    TestCase,
+    Other
+}
+
 public enum ArtifactStatus
 {
     Pending,
+<<<<<<< HEAD
     InReview,
     Approved
 }
@@ -39,20 +49,24 @@ public enum ArtifactType
     BetaTestReport,       // Reporte de Pruebas Beta
     
     Other
+=======
+    InProgress,
+    UnderReview,
+    Approved,
+    Delivered
+>>>>>>> origin/feature/-entregable
 }
 
 public class Artifact
 {
     public int Id { get; set; }
-
-    [Required]
-    public ArtifactType Type { get; set; }
-
-    [Required]
     public int ProjectPhaseId { get; set; }
-    public ProjectPhase? ProjectPhase { get; set; }
-
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public ArtifactType Type { get; set; }
+    public ArtifactStatus Status { get; set; }
     public bool IsMandatory { get; set; }
+<<<<<<< HEAD
 
     [Required]
     public ArtifactStatus Status { get; set; } = ArtifactStatus.Pending;
@@ -68,4 +82,23 @@ public class Artifact
     public string? ClosureChecklistJson { get; set; } // JSON con checklist de criterios cumplidos
 
     public ICollection<ArtifactVersion> Versions { get; set; } = new List<ArtifactVersion>();
+=======
+    
+    // Workflow fields
+    public int? WorkflowId { get; set; }
+    public int? CurrentStepId { get; set; }
+    
+    // Author and content
+    public string? Author { get; set; }
+    public string? Content { get; set; }
+    public string? FilePath { get; set; }
+    
+    // Timestamps - CAMBIADOS A NO NULLABLE
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    
+    // Navigation properties
+    public Workflow? Workflow { get; set; }
+    public WorkflowStep? CurrentStep { get; set; }
+>>>>>>> origin/feature/-entregable
 }

@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms'; 
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Artifact, ArtifactType } from '../../models/artifact.model';
 import { ArtifactService } from '../../services/artifactService';
 
@@ -9,7 +10,8 @@ import { ArtifactService } from '../../services/artifactService';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule 
   ],
   templateUrl: './artifacts-manager.component.html',
   styleUrls: ['./artifacts-manager.component.scss']
@@ -18,8 +20,12 @@ export class ArtifactsManagerComponent implements OnChanges {
   @Input() phaseId!: number;
 
   artifacts: Artifact[] = [];
-  artifactForm: FormGroup;
+  workflows: any[] = []; // AGREGAR ESTA LÍNEA
+  artifactForm!: FormGroup;
   selectedFile: File | null = null;
+
+  private apiUrl = 'http://localhost:5062/api/artifacts';
+  private workflowApiUrl = 'http://localhost:5062/api/workflows'; // AGREGAR ESTA LÍNEA
 
   artifactTypes = Object.keys(ArtifactType)
     .filter(key => !isNaN(Number(ArtifactType[key as keyof typeof ArtifactType])))
@@ -27,14 +33,26 @@ export class ArtifactsManagerComponent implements OnChanges {
 
   constructor(
     private artifactService: ArtifactService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private http: HttpClient
   ) {
+    this.initForm();
+  }
+
+  initForm() {
     this.artifactForm = this.fb.group({
-      type: [null, Validators.required],
-      author: ['', Validators.required],
-      isMandatory: [false],
+      name: ['', Validators.required],
+      description: [''],
+      type: ['', Validators.required],
+      author: [''],
       content: [''],
+      isMandatory: [false],
+      workflowId: [null] // AGREGAR ESTA LÍNEA
     });
+  }
+
+  ngOnInit() {
+    this.loadWorkflows(); // AGREGAR ESTA LÍNEA
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -43,9 +61,21 @@ export class ArtifactsManagerComponent implements OnChanges {
     }
   }
 
+  loadWorkflows() { // AGREGAR ESTE MÉTODO COMPLETO
+    this.http.get<any[]>(this.workflowApiUrl).subscribe({
+      next: (data) => {
+        this.workflows = data;
+      },
+      error: (err) => console.error('Error loading workflows:', err)
+    });
+  }
+
   loadArtifacts(): void {
-    this.artifactService.getArtifactsForPhase(this.phaseId).subscribe((data: Artifact[]) => {
-      this.artifacts = data;
+    this.http.get<Artifact[]>(`${this.apiUrl}/phase/${this.phaseId}`).subscribe({
+      next: (data) => {
+        this.artifacts = data;
+      },
+      error: (err) => console.error('Error al cargar artefactos:', err)
     });
   }
 
@@ -62,23 +92,33 @@ export class ArtifactsManagerComponent implements OnChanges {
     }
 
     const formData = new FormData();
+    formData.append('name', this.artifactForm.value.name);
+    formData.append('description', this.artifactForm.value.description || '');
+    formData.append('type', this.artifactForm.value.type);
+    formData.append('author', this.artifactForm.value.author || '');
+    formData.append('content', this.artifactForm.value.content || '');
+    formData.append('isMandatory', this.artifactForm.value.isMandatory.toString());
     formData.append('projectPhaseId', this.phaseId.toString());
-    formData.append('type', this.artifactForm.get('type')?.value);
-    formData.append('author', this.artifactForm.get('author')?.value);
-    formData.append('isMandatory', this.artifactForm.get('isMandatory')?.value);
-    formData.append('content', this.artifactForm.get('content')?.value);
-
-    if (this.selectedFile) {
-      formData.append('file', this.selectedFile, this.selectedFile.name);
+    
+    // AGREGAR ESTAS LÍNEAS
+    if (this.artifactForm.value.workflowId) {
+      formData.append('workflowId', this.artifactForm.value.workflowId);
     }
 
-    this.artifactService.createArtifact(formData).subscribe((newArtifact: Artifact) => {
-      this.loadArtifacts();
-      this.artifactForm.reset();
-      this.selectedFile = null;
-      const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+
+    this.http.post(this.apiUrl, formData).subscribe({
+      next: () => {
+        this.loadArtifacts();
+        this.artifactForm.reset({ isMandatory: false, workflowId: null });
+        this.selectedFile = null;
+        alert('Artefacto creado exitosamente');
+      },
+      error: (err) => {
+        console.error('Error al crear artefacto:', err);
+        alert('Error al crear el artefacto');
       }
     });
   }
@@ -94,5 +134,25 @@ export class ArtifactsManagerComponent implements OnChanges {
       default:
         return 'status-pending';
     }
+  }
+
+  // AGREGAR ESTE MÉTODO
+  onStatusChange(artifact: Artifact, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const newStepId = Number(select.value);
+
+    this.artifactService.updateStatus(artifact.id, newStepId).subscribe({
+      next: () => {
+        console.log('Estado actualizado');
+        // Opcional: recargar artefactos para asegurar sincronización
+        // this.loadArtifacts(); 
+        
+        // Actualizar localmente para feedback inmediato
+        artifact.currentStepId = newStepId;
+        const step = artifact.workflow?.steps.find(s => s.id === newStepId);
+        if(step) artifact.currentStep = step;
+      },
+      error: (err) => console.error('Error al cambiar estado', err)
+    });
   }
 }
