@@ -38,6 +38,8 @@ builder.Services.AddControllers()
         // Configurar JSON para usar camelCase (compatible con frontend)
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        // Serializar enums como strings
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 builder.Services.AddOpenApi();
 
@@ -94,6 +96,29 @@ if (app.Environment.IsDevelopment())
         ");
     }
     catch { /* La columna ya existe */ }
+    
+    // HU-014: Crear tabla Defects si no existe
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Defects (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Title TEXT NOT NULL,
+                Description TEXT,
+                Severity TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                ProjectId INTEGER NOT NULL,
+                ArtifactId INTEGER,
+                ReportedBy TEXT,
+                AssignedTo TEXT,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT,
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id),
+                FOREIGN KEY (ArtifactId) REFERENCES Artifacts(Id)
+            );
+        ");
+    }
+    catch { /* La tabla ya existe */ }
     
     app.MapOpenApi();
 }
