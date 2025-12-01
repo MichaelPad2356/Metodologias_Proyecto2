@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { ArtifactsManagerComponent } from './artifacts-manager.component';
 
@@ -8,7 +9,7 @@ describe('ArtifactsManagerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ArtifactsManagerComponent]
+      imports: [ArtifactsManagerComponent, HttpClientTestingModule]
     })
     .compileComponents();
 
