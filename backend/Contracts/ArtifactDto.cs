@@ -16,12 +16,15 @@ public class ArtifactVersionDto
 public class ArtifactDto
 {
     public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public ArtifactType Type { get; set; }
-    public string TypeName => Type.ToString();
-    public int ProjectPhaseId { get; set; }
-    public bool IsMandatory { get; set; }
     public ArtifactStatus Status { get; set; }
-    public string StatusName => Status.ToString();
+    public bool IsMandatory { get; set; }
+    public int? WorkflowId { get; set; }
+    public string? WorkflowName { get; set; }
+    public int? CurrentStepId { get; set; }
+    public string? CurrentStepName { get; set; }
     public DateTime CreatedAt { get; set; }
-    public List<ArtifactVersionDto> Versions { get; set; } = new();
+    public DateTime UpdatedAt { get; set; }
 }

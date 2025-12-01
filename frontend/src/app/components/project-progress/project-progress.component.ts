@@ -1,6 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../services/project.service';
+// 1. AGREGAR IMPORTACIÓN DEL MODELO
+import { Artifact } from '../../models/artifact.model'; 
 
 interface ProgresoFase {
   fase: string;
@@ -29,6 +31,9 @@ export class ProjectProgressComponent implements OnInit {
   progress: ProgresoProyecto | null = null;
   loading = false;
   error = '';
+
+  // 2. AGREGAR ESTA PROPIEDAD PARA QUE NO DE ERROR
+  currentArtifacts: Artifact[] = []; 
 
   constructor(private projectService: ProjectService) {}
 
@@ -70,5 +75,29 @@ export class ProjectProgressComponent implements OnInit {
 
   getProgressWidth(percentage: number): string {
     return `${Math.min(percentage, 100)}%`;
+  }
+
+  // TU FUNCIÓN AGREGADA (Ahora ya reconocerá 'Artifact')
+  canAdvancePhase(artifacts: Artifact[]): boolean {
+    const mandatoryArtifacts = artifacts.filter(a => a.isMandatory);
+    const pending = mandatoryArtifacts.filter(a => !this.isDelivered(a));
+
+    if (pending.length > 0) {
+      alert(`No puedes avanzar. Faltan los siguientes entregables obligatorios: ${pending.map(p => p.name).join(', ')}`);
+      return false;
+    }
+    return true;
+  }
+
+  isDelivered(artifact: Artifact): boolean {
+    // Asegúrate de que tu modelo Artifact tenga 'versions' o ajusta esto
+    return (artifact as any).versions && (artifact as any).versions.length > 0;
+  }
+
+  onNextPhase() {
+    // Ahora 'this.currentArtifacts' ya existe (aunque esté vacío por ahora)
+    if (this.canAdvancePhase(this.currentArtifacts)) {
+       console.log("Avanzando fase...");
+    }
   }
 }

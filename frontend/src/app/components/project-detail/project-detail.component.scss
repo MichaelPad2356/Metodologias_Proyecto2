@@ -199,14 +199,27 @@
 .phase-item {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  // Quitamos bordes y fondos de aquí, ya que los maneja el contenedor
-  border-bottom: 1px solid #e5e7eb; // Línea divisoria
-  transition: background-color 0.3s ease;
+  gap: 1rem;
+}
+
+.advance-phase-btn {
+  margin-left: auto;
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
 
   &:hover {
-    background-color: #f9fafb; // Un ligero color al pasar el mouse
+    background: #059669;
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
   }
 }
 

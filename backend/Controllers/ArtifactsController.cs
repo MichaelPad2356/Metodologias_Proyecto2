@@ -1,8 +1,8 @@
-using backend.Contracts;
-using backend.Models;
-using backend.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using backend.Data;
+using backend.Models;
+using backend.Contracts;
 
 namespace backend.Controllers;
 
@@ -11,116 +11,218 @@ namespace backend.Controllers;
 public class ArtifactsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly IWebHostEnvironment _env;
 
-    public ArtifactsController(ApplicationDbContext context, IWebHostEnvironment env)
+    public ArtifactsController(ApplicationDbContext context)
     {
         _context = context;
-        _env = env;
     }
 
-    // GET: api/artifacts/phase/{phaseId}
     [HttpGet("phase/{phaseId}")]
-    public async Task<IActionResult> GetArtifactsForPhase(int phaseId)
+    public async Task<ActionResult<IEnumerable<ArtifactDto>>> GetArtifactsForPhase(int phaseId)
     {
         var artifacts = await _context.Artifacts
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
             .Where(a => a.ProjectPhaseId == phaseId)
-            .Include(a => a.Versions)
             .Select(a => new ArtifactDto
             {
                 Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
                 Type = a.Type,
-                ProjectPhaseId = a.ProjectPhaseId,
-                IsMandatory = a.IsMandatory,
                 Status = a.Status,
+                IsMandatory = a.IsMandatory,
+                WorkflowId = a.WorkflowId,
+                WorkflowName = a.Workflow != null ? a.Workflow.Name : null,
+                CurrentStepId = a.CurrentStepId,
+                CurrentStepName = a.CurrentStep != null ? a.CurrentStep.Name : null,
                 CreatedAt = a.CreatedAt,
-                Versions = a.Versions.OrderByDescending(v => v.VersionNumber).Select(v => new ArtifactVersionDto
-                {
-                    Id = v.Id,
-                    VersionNumber = v.VersionNumber,
-                    Author = v.Author,
-                    Content = v.Content,
-                    OriginalFileName = v.OriginalFileName,
-                    CreatedAt = v.CreatedAt,
-                    DownloadUrl = !string.IsNullOrEmpty(v.FilePath) ? $"/uploads/{Path.GetFileName(v.FilePath)}" : null
-                }).ToList()
+                UpdatedAt = a.UpdatedAt
             })
             .ToListAsync();
 
         return Ok(artifacts);
     }
 
-    // POST: api/artifacts
-    [HttpPost]
-    public async Task<IActionResult> CreateArtifact([FromForm] CreateArtifactDto dto)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ArtifactDto>> GetArtifact(int id)
     {
-        var phase = await _context.ProjectPhases.FindAsync(dto.ProjectPhaseId);
-        if (phase == null)
-        {
-            return NotFound("Project phase not found.");
-        }
+        var artifact = await _context.Artifacts
+            .Include(a => a.Workflow)
+                .ThenInclude(w => w.Steps)
+            .Include(a => a.CurrentStep)
+            .FirstOrDefaultAsync(a => a.Id == id);
 
+        if (artifact == null)
+            return NotFound();
+
+        var dto = new ArtifactDto
+        {
+            Id = artifact.Id,
+            Name = artifact.Name,
+            Description = artifact.Description,
+            Type = artifact.Type,
+            Status = artifact.Status,
+            IsMandatory = artifact.IsMandatory,
+            WorkflowId = artifact.WorkflowId,
+            WorkflowName = artifact.Workflow?.Name,
+            CurrentStepId = artifact.CurrentStepId,
+            CurrentStepName = artifact.CurrentStep?.Name,
+            CreatedAt = artifact.CreatedAt,
+            UpdatedAt = artifact.UpdatedAt
+        };
+
+        return Ok(dto);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ArtifactDto>> CreateArtifact(CreateArtifactDto dto)
+    {
         var artifact = new Artifact
         {
-            Type = dto.Type,
             ProjectPhaseId = dto.ProjectPhaseId,
+            Name = dto.Name,
+            Description = dto.Description,
+            Type = dto.Type,
+            Status = ArtifactStatus.Pending,
             IsMandatory = dto.IsMandatory,
-            Status = ArtifactStatus.Pending
+            WorkflowId = dto.WorkflowId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
-        var firstVersion = new ArtifactVersion
+        // Si tiene workflow asignado, establecer el primer paso como CurrentStep
+        if (dto.WorkflowId.HasValue)
         {
-            Artifact = artifact,
-            VersionNumber = 1,
-            Author = dto.Author,
-            Content = dto.Content
-        };
+            var firstStep = await _context.WorkflowSteps
+                .Where(s => s.WorkflowId == dto.WorkflowId.Value)
+                .OrderBy(s => s.Order)
+                .FirstOrDefaultAsync();
 
-        if (dto.File != null)
-        {
-            var uploadsDir = Path.Combine(_env.ContentRootPath, "uploads");
-            if (!Directory.Exists(uploadsDir))
+            if (firstStep != null)
             {
-                Directory.CreateDirectory(uploadsDir);
+                artifact.CurrentStepId = firstStep.Id;
             }
-            var uniqueFileName = $"{Guid.NewGuid()}_{dto.File.FileName}";
-            var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.File.CopyToAsync(stream);
-            }
-
-            firstVersion.FilePath = filePath;
-            firstVersion.OriginalFileName = dto.File.FileName;
-            firstVersion.ContentType = dto.File.ContentType;
         }
 
-        artifact.Versions.Add(firstVersion);
         _context.Artifacts.Add(artifact);
         await _context.SaveChangesAsync();
+
+        // Cargar relaciones para el DTO de respuesta
+        await _context.Entry(artifact)
+            .Reference(a => a.Workflow)
+            .LoadAsync();
+        await _context.Entry(artifact)
+            .Reference(a => a.CurrentStep)
+            .LoadAsync();
 
         var resultDto = new ArtifactDto
         {
             Id = artifact.Id,
+            Name = artifact.Name,
+            Description = artifact.Description,
             Type = artifact.Type,
-            ProjectPhaseId = artifact.ProjectPhaseId,
-            IsMandatory = artifact.IsMandatory,
             Status = artifact.Status,
+            IsMandatory = artifact.IsMandatory,
+            WorkflowId = artifact.WorkflowId,
+            WorkflowName = artifact.Workflow?.Name,
+            CurrentStepId = artifact.CurrentStepId,
+            CurrentStepName = artifact.CurrentStep?.Name,
             CreatedAt = artifact.CreatedAt,
-            Versions = new List<ArtifactVersionDto> { 
-                new ArtifactVersionDto {
-                    Id = firstVersion.Id,
-                    VersionNumber = firstVersion.VersionNumber,
-                    Author = firstVersion.Author,
-                    Content = firstVersion.Content,
-                    OriginalFileName = firstVersion.OriginalFileName,
-                    CreatedAt = firstVersion.CreatedAt,
-                    DownloadUrl = !string.IsNullOrEmpty(firstVersion.FilePath) ? $"/uploads/{Path.GetFileName(firstVersion.FilePath)}" : null
-                }
-            }
+            UpdatedAt = artifact.UpdatedAt
         };
 
-        return CreatedAtAction(nameof(GetArtifactsForPhase), new { phaseId = artifact.ProjectPhaseId }, resultDto);
+        return CreatedAtAction(nameof(GetArtifact), new { id = artifact.Id }, resultDto);
     }
+
+    [HttpPut("{id}/change-step")]
+    public async Task<IActionResult> ChangeWorkflowStep(int id, [FromBody] ChangeStepDto dto)
+    {
+        var artifact = await _context.Artifacts
+            .Include(a => a.Workflow)
+                .ThenInclude(w => w.Steps)
+            .Include(a => a.CurrentStep)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (artifact == null)
+            return NotFound();
+
+        if (artifact.WorkflowId == null)
+            return BadRequest("Este artefacto no tiene un flujo de trabajo asignado");
+
+        var newStep = await _context.WorkflowSteps
+            .FirstOrDefaultAsync(s => s.Id == dto.NewStepId && s.WorkflowId == artifact.WorkflowId);
+
+        if (newStep == null)
+            return BadRequest("El paso seleccionado no pertenece al flujo de trabajo de este artefacto");
+
+        // Registrar el cambio en el historial
+        var history = new ArtifactHistory
+        {
+            ArtifactId = artifact.Id,
+            PreviousState = artifact.CurrentStep?.Name ?? "Sin estado",
+            NewState = newStep.Name,
+            ChangedAt = DateTime.UtcNow,
+            ChangedBy = dto.ChangedBy ?? "Sistema",
+            Comments = dto.Comments ?? string.Empty
+        };
+
+        artifact.CurrentStepId = dto.NewStepId;
+        artifact.UpdatedAt = DateTime.UtcNow;
+
+        _context.ArtifactHistories.Add(history);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpGet("{id}/history")]
+    public async Task<ActionResult<IEnumerable<ArtifactHistory>>> GetArtifactHistory(int id)
+    {
+        var history = await _context.ArtifactHistories
+            .Where(h => h.ArtifactId == id)
+            .OrderByDescending(h => h.ChangedAt)
+            .ToListAsync();
+
+        return Ok(history);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateArtifact(int id, CreateArtifactDto dto)
+    {
+        var artifact = await _context.Artifacts.FindAsync(id);
+        if (artifact == null)
+            return NotFound();
+
+        artifact.Name = dto.Name;
+        artifact.Description = dto.Description;
+        artifact.Type = dto.Type;
+        artifact.IsMandatory = dto.IsMandatory;
+        artifact.WorkflowId = dto.WorkflowId;
+        artifact.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteArtifact(int id)
+    {
+        var artifact = await _context.Artifacts.FindAsync(id);
+        if (artifact == null)
+            return NotFound();
+
+        _context.Artifacts.Remove(artifact);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+}
+
+public class ChangeStepDto
+{
+    public int NewStepId { get; set; }
+    public string? ChangedBy { get; set; }
+    public string? Comments { get; set; }
 }

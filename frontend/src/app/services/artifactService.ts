@@ -20,4 +20,12 @@ export class ArtifactService {
     // y añadirá el 'boundary' correcto para multipart/form-data.
     return this.http.post<Artifact>(this.apiUrl, data);
   }
+
+  updateStatus(artifactId: number, newStepId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${artifactId}/status`, {
+      newStepId: newStepId,
+      comments: 'Cambio de estado desde el panel',
+      changedBy: 'Usuario Demo'
+    });
+  }
 }

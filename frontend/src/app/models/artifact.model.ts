@@ -23,12 +23,36 @@ export interface ArtifactVersion {
   downloadUrl?: string;
 }
 
+export interface WorkflowStep {
+  id: number;
+  name: string;
+  order: number;
+}
+
+export interface Workflow {
+  id: number;
+  name: string;
+  steps: WorkflowStep[];
+}
+
 export interface Artifact {
   id: number;
-  type: ArtifactType;
+  name: string;
+  description: string;
+  isMandatory: boolean;
+
+  // AGREGAR ESTOS CAMPOS NUEVOS:
+  workflowId?: number;
+  workflow?: Workflow;
+  currentStepId?: number;
+  currentStep?: WorkflowStep;
+
+  // ... el resto de tus campos (type, author, etc.) ...
+  type: any;
+  author: string;
+  // etc...
   typeName: string;
   projectPhaseId: number;
-  isMandatory: boolean;
   status: ArtifactStatus;
   statusName: string;
   createdAt: Date;
