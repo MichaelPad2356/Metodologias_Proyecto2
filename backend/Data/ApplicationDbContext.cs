@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Iteration> Iterations { get; set; }
     public DbSet<IterationTask> IterationTasks { get; set; }
     public DbSet<Iteracion> Iteraciones { get; set; }
+    public DbSet<Defect> Defects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
