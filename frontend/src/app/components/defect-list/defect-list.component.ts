@@ -81,15 +81,22 @@ import { RouterModule } from '@angular/router';
     .page-subtitle { color: #6b7280; margin-top: 0.25rem; }
 
     /* Botón Primario */
+<<<<<<< HEAD
     .btn-primary {
       background-color: #2563eb; color: white; padding: 0.75rem 1.5rem;
       border-radius: 8px; text-decoration: none; font-weight: 500;
+=======
+    .btn-primary { 
+      background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; 
+      border-radius: 8px; text-decoration: none; font-weight: 500; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
       transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;
       box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
     }
     .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); }
 
     /* Tabla Estilizada */
+<<<<<<< HEAD
     .card-table-container {
       background: white; border-radius: 12px;
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
@@ -99,6 +106,17 @@ import { RouterModule } from '@angular/router';
     .modern-table th {
       background-color: #f9fafb; padding: 1rem 1.5rem; font-size: 0.75rem;
       text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 600;
+=======
+    .card-table-container { 
+      background: white; border-radius: 12px; 
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06); 
+      overflow: hidden; border: 1px solid #e5e7eb;
+    }
+    .modern-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .modern-table th { 
+      background-color: #f9fafb; padding: 1rem 1.5rem; font-size: 0.75rem; 
+      text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 600; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     }
     .modern-table td { padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; vertical-align: middle; }
     .modern-table tr:hover { background-color: #f9fafb; }
@@ -126,9 +144,15 @@ import { RouterModule } from '@angular/router';
 
     /* Avatar */
     .user-cell { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: #374151; }
+<<<<<<< HEAD
     .avatar-circle {
       width: 28px; height: 28px; background-color: #e5e7eb; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
+=======
+    .avatar-circle { 
+      width: 28px; height: 28px; background-color: #e5e7eb; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
       font-size: 0.75rem; font-weight: 600; color: #4b5563;
     }
 
@@ -151,4 +175,8 @@ export class DefectListComponent implements OnInit {
       error: (err) => console.error('Error al cargar defectos:', err)
     });
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d

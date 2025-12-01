@@ -26,4 +26,8 @@ export interface Defect {
   reportedBy?: string;
   assignedTo?: string;
   createdAt?: Date;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d

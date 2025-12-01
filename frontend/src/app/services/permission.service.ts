@@ -5,7 +5,11 @@ import { Injectable } from '@angular/core';
 })
 export class PermissionService {
   // SIMULACIÓN: Cambia esto para probar diferentes roles ('Admin', 'Tester', 'Developer')
+<<<<<<< HEAD
   currentUserRole: string = 'Tester';
+=======
+  currentUserRole: string = 'Tester'; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
 
   constructor() { }
 
@@ -20,7 +24,11 @@ export class PermissionService {
   canCreateDefect(): boolean {
     return ['Admin', 'Tester'].includes(this.currentUserRole);
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
   // HU-013: Matriz de permisos
   canEditStatus(currentStatus: string): boolean {
     if (this.currentUserRole === 'Admin') return true;
@@ -28,4 +36,8 @@ export class PermissionService {
     if (this.currentUserRole === 'Tester' && currentStatus === 'InReview') return true;
     return false;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d

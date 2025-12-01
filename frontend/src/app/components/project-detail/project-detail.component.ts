@@ -319,4 +319,43 @@ export class ProjectDetailComponent implements OnInit {
   closeVersionDetail(): void {
     this.selectedVersion = null;
   }
+
+  checkAndAdvancePhase(phaseId: number): void {
+    if (confirm('¿Está seguro de completar esta fase? Se verificarán los artefactos obligatorios.')) {
+      this.projectService.checkPhaseArtifacts(phaseId).subscribe({
+        next: (response: any) => {
+          if (response.canAdvance) {
+            this.advancePhase(phaseId);
+          } else {
+            const incompleteList = response.incompleteArtifacts
+              .map((a: any) => `- ${a.name} (${a.type}): ${a.status}`)
+              .join('\n');
+            
+            alert(`❌ No se puede avanzar de fase.\n\n${response.message}\n\nArtefactos pendientes:\n${incompleteList}`);
+          }
+        },
+        error: (err) => {
+          console.error('Error al validar fase:', err);
+          alert('Error al validar la fase. Intente nuevamente.');
+        }
+      });
+    }
+  }
+
+  advancePhase(phaseId: number): void {
+    this.projectService.advancePhase(phaseId).subscribe({
+      next: (response: any) => {
+        alert(`✅ ${response.message}`);
+        this.loadProject(this.project!.id); // Recargar el proyecto para actualizar el estado
+      },
+      error: (err) => {
+        console.error('Error al avanzar fase:', err);
+        if (err.error?.message) {
+          alert(`❌ ${err.error.message}`);
+        } else {
+          alert('Error al avanzar la fase. Intente nuevamente.');
+        }
+      }
+    });
+  }
 }

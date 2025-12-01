@@ -23,6 +23,7 @@ import { PermissionService } from '../../services/permission.service';
         </div>
 
         <form *ngIf="canCreate" (ngSubmit)="onSubmit()" #defectForm="ngForm">
+<<<<<<< HEAD
 
           <div class="form-group">
             <label>Título del Defecto</label>
@@ -33,6 +34,18 @@ import { PermissionService } from '../../services/permission.service';
           <div class="form-group">
             <label>Descripción y Pasos para Reproducir</label>
             <textarea [(ngModel)]="defect.description" name="desc" rows="5"
+=======
+          
+          <div class="form-group">
+            <label>Título del Defecto</label>
+            <input type="text" [(ngModel)]="defect.title" name="title" required 
+                   placeholder="Ej: Error al guardar usuario nuevo" class="form-input">
+          </div>
+          
+          <div class="form-group">
+            <label>Descripción y Pasos para Reproducir</label>
+            <textarea [(ngModel)]="defect.description" name="desc" rows="5" 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
                       placeholder="1. Ingresar al módulo..." class="form-input"></textarea>
           </div>
 
@@ -46,10 +59,17 @@ import { PermissionService } from '../../services/permission.service';
                 <option value="Critical">🔴 Crítica (Bloqueante)</option>
               </select>
             </div>
+<<<<<<< HEAD
 
             <div class="form-group">
               <label>Asignar a (Simulado)</label>
               <input type="text" [(ngModel)]="defect.assignedTo" name="assigned"
+=======
+            
+            <div class="form-group">
+              <label>Asignar a (Simulado)</label>
+              <input type="text" [(ngModel)]="defect.assignedTo" name="assigned" 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
                      placeholder="Nombre del desarrollador" class="form-input">
             </div>
           </div>
@@ -65,12 +85,21 @@ import { PermissionService } from '../../services/permission.service';
     </div>
   `,
   styles: [`
+<<<<<<< HEAD
     .page-container {
       min-height: 90vh; display: flex; justify-content: center; padding: 2rem; background-color: #f3f4f6;
     }
     .form-card {
       background: white; width: 100%; max-width: 600px; padding: 2.5rem;
       border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: fit-content;
+=======
+    .page-container { 
+      min-height: 90vh; display: flex; justify-content: center; padding: 2rem; background-color: #f3f4f6; 
+    }
+    .form-card { 
+      background: white; width: 100%; max-width: 600px; padding: 2.5rem; 
+      border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); h-fit: content;
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     }
     .form-header { margin-bottom: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; }
     .form-header h2 { margin: 0; color: #111827; font-size: 1.5rem; font-weight: 700; }
@@ -78,6 +107,7 @@ import { PermissionService } from '../../services/permission.service';
 
     .form-group { margin-bottom: 1.5rem; }
     .form-group label { display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem; }
+<<<<<<< HEAD
     .form-input, .form-select {
       width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
       font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
@@ -85,29 +115,56 @@ import { PermissionService } from '../../services/permission.service';
     }
     .form-input:focus, .form-select:focus {
       outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+=======
+    
+    .form-input, .form-select { 
+      width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; 
+      font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box; /* Crucial para que no se salga del contenedor */
+    }
+    .form-input:focus, .form-select:focus { 
+      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     }
 
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
     .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+<<<<<<< HEAD
 
     .btn-primary {
+=======
+    
+    .btn-primary { 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
       background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none;
       border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
     }
     .btn-primary:disabled { background-color: #93c5fd; cursor: not-allowed; }
     .btn-primary:hover:not(:disabled) { background-color: #1d4ed8; }
 
+<<<<<<< HEAD
     .btn-secondary {
       background-color: white; color: #374151; padding: 0.75rem 1.5rem;
       border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500;
+=======
+    .btn-secondary { 
+      background-color: white; color: #374151; padding: 0.75rem 1.5rem; 
+      border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
       text-decoration: none; cursor: pointer;
     }
     .btn-secondary:hover { background-color: #f9fafb; }
 
+<<<<<<< HEAD
     .alert-error {
       background-color: #fee2e2; color: #991b1b; padding: 1rem;
       border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500;
+=======
+    .alert-error { 
+      background-color: #fee2e2; color: #991b1b; padding: 1rem; 
+      border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     }
   `]
 })
@@ -117,7 +174,11 @@ export class DefectCreateComponent {
     description: '',
     severity: DefectSeverity.Medium,
     status: DefectStatus.New,
+<<<<<<< HEAD
     projectId: 1,
+=======
+    projectId: 1, 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     reportedBy: 'Tester'
   };
 
@@ -125,7 +186,11 @@ export class DefectCreateComponent {
   isSubmitting: boolean = false;
 
   constructor(
+<<<<<<< HEAD
     private defectService: DefectService,
+=======
+    private defectService: DefectService, 
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     private router: Router,
     private permService: PermissionService
   ) {
@@ -135,7 +200,11 @@ export class DefectCreateComponent {
   onSubmit() {
     console.log('Intentando enviar defecto:', this.defect);
     this.isSubmitting = true;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
     this.defectService.createDefect(this.defect).subscribe({
       next: (res) => {
         console.log('Defecto creado exitosamente:', res);
@@ -148,4 +217,8 @@ export class DefectCreateComponent {
       }
     });
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d

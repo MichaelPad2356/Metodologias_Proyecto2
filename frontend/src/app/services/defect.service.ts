@@ -7,7 +7,11 @@ import { Defect } from '../models/defect.model';
   providedIn: 'root'
 })
 export class DefectService {
+<<<<<<< HEAD
   private apiUrl = '/api/defects';
+=======
+  private apiUrl = '/api/defects';  // Usar URL relativa para que funcione con el proxy
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
 
   constructor(private http: HttpClient) { }
 
@@ -16,6 +20,7 @@ export class DefectService {
     return this.http.get<Defect[]>(url);
   }
 
+<<<<<<< HEAD
   getDefect(id: number): Observable<Defect> {
     return this.http.get<Defect>(`${this.apiUrl}/${id}`);
   }
@@ -32,3 +37,9 @@ export class DefectService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
+=======
+  createDefect(defect: Defect): Observable<Defect> {
+    return this.http.post<Defect>(this.apiUrl, defect);
+  }
+}
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
