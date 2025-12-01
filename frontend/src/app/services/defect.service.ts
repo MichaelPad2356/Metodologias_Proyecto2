@@ -7,8 +7,7 @@ import { Defect } from '../models/defect.model';
   providedIn: 'root'
 })
 export class DefectService {
-  // >> CAMBIO AQUÍ: Poner el puerto correcto (5277) <<
-  private apiUrl = 'http://localhost:5277/api/defects'; 
+  private apiUrl = '/api/defects';  // Usar URL relativa para que funcione con el proxy
 
   constructor(private http: HttpClient) { }
 
