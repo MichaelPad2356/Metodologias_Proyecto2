@@ -26,8 +26,19 @@ namespace backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("CurrentStepId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsMandatory")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("ProjectPhaseId")
                         .HasColumnType("INTEGER");
@@ -41,11 +52,57 @@ namespace backend.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("WorkflowId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentStepId");
 
                     b.HasIndex("ProjectPhaseId");
 
+<<<<<<< HEAD
                     b.ToTable("Artifacts", (string)null);
+=======
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("Artifacts");
+>>>>>>> origin/feature/-entregable
+                });
+
+            modelBuilder.Entity("backend.Models.ArtifactHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArtifactId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ChangeDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comments")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NewState")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PreviousState")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtifactId");
+
+                    b.ToTable("ArtifactHistories");
                 });
 
             modelBuilder.Entity("backend.Models.ArtifactVersion", b =>
@@ -492,15 +549,111 @@ namespace backend.Migrations
                     b.ToTable("ProjectPlanVersions", (string)null);
                 });
 
+            modelBuilder.Entity("backend.Models.Workflow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Workflows");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Ciclo de vida básico",
+                            Name = "Flujo Estándar OpenUP"
+                        });
+                });
+
+            modelBuilder.Entity("backend.Models.WorkflowStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WorkflowId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkflowId");
+
+                    b.ToTable("WorkflowSteps");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Borrador",
+                            Order = 1,
+                            WorkflowId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Revisión Técnica",
+                            Order = 2,
+                            WorkflowId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Aprobado",
+                            Order = 3,
+                            WorkflowId = 1
+                        });
+                });
+
             modelBuilder.Entity("backend.Models.Artifact", b =>
                 {
+                    b.HasOne("backend.Models.WorkflowStep", "CurrentStep")
+                        .WithMany()
+                        .HasForeignKey("CurrentStepId");
+
                     b.HasOne("backend.Models.ProjectPhase", "ProjectPhase")
                         .WithMany("Artifacts")
                         .HasForeignKey("ProjectPhaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("backend.Models.Workflow", "Workflow")
+                        .WithMany()
+                        .HasForeignKey("WorkflowId");
+
+                    b.Navigation("CurrentStep");
+
                     b.Navigation("ProjectPhase");
+
+                    b.Navigation("Workflow");
+                });
+
+            modelBuilder.Entity("backend.Models.ArtifactHistory", b =>
+                {
+                    b.HasOne("backend.Models.Artifact", "Artifact")
+                        .WithMany()
+                        .HasForeignKey("ArtifactId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artifact");
                 });
 
             modelBuilder.Entity("backend.Models.ArtifactVersion", b =>
@@ -605,6 +758,17 @@ namespace backend.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("backend.Models.WorkflowStep", b =>
+                {
+                    b.HasOne("backend.Models.Workflow", "Workflow")
+                        .WithMany("Steps")
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workflow");
+                });
+
             modelBuilder.Entity("backend.Models.Artifact", b =>
                 {
                     b.Navigation("Versions");
@@ -630,6 +794,11 @@ namespace backend.Migrations
                     b.Navigation("Artifacts");
 
                     b.Navigation("Deliverables");
+                });
+
+            modelBuilder.Entity("backend.Models.Workflow", b =>
+                {
+                    b.Navigation("Steps");
                 });
 #pragma warning restore 612, 618
         }

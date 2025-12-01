@@ -13,7 +13,19 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d3b2c7aa26038fc28fdd749fbdcc985df0c08fb8")]
+=======
+<<<<<<< HEAD
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5db0348402602da9e4cfe6969fb06413f4d626f2")]
+=======
+<<<<<<< HEAD
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a787b92c557967d23f40ef81504763a6682bd63")]
+=======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e041fb51c74d4cc46c25f5c0460db3c4184b6d4")]
+>>>>>>> origin/feature/-entregable
+>>>>>>> d108d771f9075f873bc53085d2f6ee41952a6c59
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
 [assembly: System.Reflection.AssemblyProductAttribute("backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

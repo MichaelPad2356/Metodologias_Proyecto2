@@ -3,28 +3,45 @@
   <!-- Lista de Artefactos (siempre visible) -->
   <div class="artifacts-list">
     <div class="artifacts-header">
-      <h6 class="artifacts-title">Artefactos</h6>
+      <h3>
+        <span class="icon">📦</span> Artefactos
+      </h3>
       <button 
-        class="btn btn-outline-primary btn-sm add-btn" 
-        type="button" 
-        data-bs-toggle="collapse" 
-        [attr.data-bs-target]="'#form' + phaseId" 
-        aria-expanded="false">
-        <i class="fas fa-plus"></i>
+        class="btn-toggle"
+        type="button"
+        [attr.data-bs-toggle]="'collapse'"
+        [attr.data-bs-target]="'#form' + phaseId"
+        [attr.aria-expanded]="false"
+        [attr.aria-controls]="'form' + phaseId"
+        title="Agregar nuevo artefacto"
+      >
+        <span class="plus-icon">+</span>
       </button>
     </div>
 
     <!-- Lista de artefactos existentes -->
     <div *ngIf="artifacts.length === 0" class="no-artifacts">
-      <small class="text-muted">No hay artefactos registrados</small>
+      <p>No hay artefactos registrados</p>
     </div>
     
     <div *ngFor="let artifact of artifacts" class="artifact-item">
       <div class="artifact-info">
-        <span class="artifact-type">{{ artifact.typeName }}</span>
-        <span class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
-          {{ artifact.statusName }}
-        </span>
+        <span class="artifact-type">{{ artifact.name }}</span>
+        
+        <!-- NUEVO CONTROL DE ESTADO -->
+        <div class="status-control ms-3" *ngIf="artifact.workflow">
+            <select 
+                class="form-select form-select-sm" 
+                [ngModel]="artifact.currentStepId" 
+                (change)="onStatusChange(artifact, $event)"
+                [ngClass]="{'bg-success text-white': artifact.currentStep?.name === 'Aprobado'}">
+                
+                <option *ngFor="let step of artifact.workflow.steps" [value]="step.id">
+                    {{ step.name }}
+                </option>
+            </select>
+        </div>
+        <div *ngIf="!artifact.workflow" class="badge bg-secondary">Sin flujo</div>
       </div>
       <small class="text-muted">{{ artifact.isMandatory ? 'Obligatorio' : 'Opcional' }}</small>
     </div>
@@ -60,12 +77,42 @@
           <label for="fileInput" class="form-label">Archivo (Opcional)</label>
           <input type="file" id="fileInput" class="form-control form-control-sm" (change)="onFileSelected($event)">
         </div>
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" id="isMandatory" formControlName="isMandatory">
-          <label class="form-check-label" for="isMandatory">
-            Es obligatorio
-          </label>
+
+        <!-- CORRECCIÓN AQUÍ: Usamos formControlName en lugar de ngModel -->
+        <div class="form-group mt-3">
+          <div class="form-check form-switch">
+            <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="mandatorySwitch"
+                formControlName="isMandatory"> 
+            <label class="form-check-label" for="mandatorySwitch">
+                {{ artifactForm.get('isMandatory')?.value ? '⚠️ Obligatorio' : '🔓 Opcional' }}
+            </label>
+          </div>
+          <small class="text-muted">
+              Si es obligatorio, no se podrá avanzar de fase hasta que este artefacto esté entregado.
+          </small>
         </div>
+
+        <!-- Selector de Workflow -->
+        <div class="form-group">
+          <label for="workflowSelect">⚙️ Flujo de trabajo (Opcional)</label>
+          <select 
+            id="workflowSelect"
+            class="form-control"
+            formControlName="workflowId"
+          >
+            <option [value]="null">Sin flujo de trabajo</option>
+            <option *ngFor="let workflow of workflows" [value]="workflow.id">
+              {{ workflow.name }} ({{ workflow.steps.length }} pasos)
+            </option>
+          </select>
+          <small class="form-text text-muted">
+            Si seleccionas un flujo, el artefacto seguirá sus estados definidos.
+          </small>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary btn-sm" [disabled]="artifactForm.invalid">
             Guardar

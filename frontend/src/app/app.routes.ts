@@ -6,7 +6,16 @@ import { PlanningIntegratedComponent } from './components/planning/planning-inte
 import { HomeComponent } from './home.component';
 import { MicroincrementListComponent } from './components/microincrement-list/microincrement-list.component';
 import { MicroincrementCreateComponent } from './components/microincrement-create/microincrement-create.component';
+<<<<<<< HEAD
 import { TransitionArtifactsComponent } from './components/transition-artifacts/transition-artifacts.component';
+import { DefectListComponent } from './components/defect-list/defect-list.component';
+import { DefectCreateComponent } from './components/defect-create/defect-create.component';
+<<<<<<< HEAD
+=======
+=======
+import { WorkflowsComponent } from './components/workflows/workflows.component';
+>>>>>>> origin/feature/-entregable
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -18,5 +27,16 @@ export const routes: Routes = [
   { path: 'projects/:id/transition', component: TransitionArtifactsComponent },
   { path: 'microincrements', component: MicroincrementListComponent },
   { path: 'microincrements/new', component: MicroincrementCreateComponent },
+<<<<<<< HEAD
+  { path: 'defects', component: DefectListComponent },
+  { path: 'defects/new', component: DefectCreateComponent },
+=======
+<<<<<<< HEAD
+  { path: 'defects', component: DefectListComponent },
+  { path: 'defects/new', component: DefectCreateComponent },
+=======
+  { path: 'workflows', component: WorkflowsComponent }, 
+>>>>>>> origin/feature/-entregable
+>>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
   { path: '**', redirectTo: '/' }
 ];

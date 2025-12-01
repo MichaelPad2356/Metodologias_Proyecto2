@@ -147,6 +147,16 @@
                     {{ getPhaseStatusLabel(phase.status) }}
                   </span>
                 </div>
+                <!-- BOTÓN DE AVANZAR FASE -->
+                @if (phase.status === 'InProgress') {
+                  <button 
+                    class="btn btn-sm btn-primary advance-phase-btn"
+                    (click)="checkAndAdvancePhase(phase.id)"
+                    title="Validar artefactos obligatorios y avanzar fase"
+                  >
+                    ✅ Completar Fase
+                  </button>
+                }
               </div>
               <!-- ARTEFACTOS PARA ESTA FASE -->
               <div class="artifacts-for-phase">
