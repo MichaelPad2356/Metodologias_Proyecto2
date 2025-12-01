@@ -28,20 +28,16 @@
       <div class="artifact-info">
         <span class="artifact-type">{{ artifact.name }}</span>
         
-        <!-- NUEVO CONTROL DE ESTADO -->
-        <div class="status-control ms-3" *ngIf="artifact.workflow">
-            <select 
-                class="form-select form-select-sm" 
-                [ngModel]="artifact.currentStepId" 
-                (change)="onStatusChange(artifact, $event)"
-                [ngClass]="{'bg-success text-white': artifact.currentStep?.name === 'Aprobado'}">
-                
-                <option *ngFor="let step of artifact.workflow.steps" [value]="step.id">
-                    {{ step.name }}
-                </option>
-            </select>
+        <!-- Control de estado basado en ArtifactStatus -->
+        <div class="status-control ms-3">
+          <span [ngClass]="{
+            'badge bg-warning text-dark': artifact.status === 0,
+            'badge bg-info': artifact.status === 1,
+            'badge bg-success': artifact.status === 2
+          }">
+            {{ artifact.statusName || 'Pendiente' }}
+          </span>
         </div>
-        <div *ngIf="!artifact.workflow" class="badge bg-secondary">Sin flujo</div>
       </div>
       <small class="text-muted">{{ artifact.isMandatory ? 'Obligatorio' : 'Opcional' }}</small>
     </div>
@@ -95,21 +91,10 @@
           </small>
         </div>
 
-        <!-- Selector de Workflow -->
+        <!-- Tipo de artefacto (ya no usamos workflows) -->
         <div class="form-group">
-          <label for="workflowSelect">⚙️ Flujo de trabajo (Opcional)</label>
-          <select 
-            id="workflowSelect"
-            class="form-control"
-            formControlName="workflowId"
-          >
-            <option [value]="null">Sin flujo de trabajo</option>
-            <option *ngFor="let workflow of workflows" [value]="workflow.id">
-              {{ workflow.name }} ({{ workflow.steps.length }} pasos)
-            </option>
-          </select>
           <small class="form-text text-muted">
-            Si seleccionas un flujo, el artefacto seguirá sus estados definidos.
+            El artefacto seguirá el flujo de estados estándar: Pendiente → En Revisión → Aprobado
           </small>
         </div>
 

@@ -1,224 +1,137 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { DefectService } from '../../services/defect.service';
-import { Defect, DefectSeverity, DefectStatus } from '../../models/defect.model';
-import { PermissionService } from '../../services/permission.service';
+import { CreateDefectDto, DefectSeverity } from '../../models/defect.model';
+import { ProjectService } from '../../services/project.service';
+import { Project } from '../../models/project.model';
 
 @Component({
   selector: 'app-defect-create',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="page-container">
-      <div class="form-card">
-        <div class="form-header">
-          <h2>Nuevo Reporte de Defecto</h2>
-          <p>Detalla el incidente encontrado para su seguimiento.</p>
-        </div>
-
-        <div *ngIf="!canCreate" class="alert-error">
-          🔒 No tienes permisos para crear defectos. Contacta al administrador.
-        </div>
-
-        <form *ngIf="canCreate" (ngSubmit)="onSubmit()" #defectForm="ngForm">
-<<<<<<< HEAD
-
-          <div class="form-group">
-            <label>Título del Defecto</label>
-            <input type="text" [(ngModel)]="defect.title" name="title" required
-                   placeholder="Ej: Error al guardar usuario nuevo" class="form-input">
-          </div>
-
-          <div class="form-group">
-            <label>Descripción y Pasos para Reproducir</label>
-            <textarea [(ngModel)]="defect.description" name="desc" rows="5"
-=======
-          
-          <div class="form-group">
-            <label>Título del Defecto</label>
-            <input type="text" [(ngModel)]="defect.title" name="title" required 
-                   placeholder="Ej: Error al guardar usuario nuevo" class="form-input">
-          </div>
-          
-          <div class="form-group">
-            <label>Descripción y Pasos para Reproducir</label>
-            <textarea [(ngModel)]="defect.description" name="desc" rows="5" 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-                      placeholder="1. Ingresar al módulo..." class="form-input"></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Severidad</label>
-              <select [(ngModel)]="defect.severity" name="severity" class="form-select">
-                <option value="Low">🟢 Baja (Cosmético)</option>
-                <option value="Medium">🟡 Media (Funcionalidad parcial)</option>
-                <option value="High">🟠 Alta (Funcionalidad crítica)</option>
-                <option value="Critical">🔴 Crítica (Bloqueante)</option>
-              </select>
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h4><i class="bi bi-bug me-2"></i>Registrar Nuevo Defecto</h4>
             </div>
-<<<<<<< HEAD
+            <div class="card-body">
+              <form (ngSubmit)="onSubmit()" #defectForm="ngForm">
+                <div class="mb-3">
+                  <label for="title" class="form-label">Título *</label>
+                  <input type="text" class="form-control" id="title" 
+                         [(ngModel)]="defect.title" name="title" required>
+                </div>
 
-            <div class="form-group">
-              <label>Asignar a (Simulado)</label>
-              <input type="text" [(ngModel)]="defect.assignedTo" name="assigned"
-=======
-            
-            <div class="form-group">
-              <label>Asignar a (Simulado)</label>
-              <input type="text" [(ngModel)]="defect.assignedTo" name="assigned" 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-                     placeholder="Nombre del desarrollador" class="form-input">
+                <div class="mb-3">
+                  <label for="description" class="form-label">Descripción *</label>
+                  <textarea class="form-control" id="description" rows="4"
+                            [(ngModel)]="defect.description" name="description" required></textarea>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="severity" class="form-label">Severidad *</label>
+                    <select class="form-select" id="severity" 
+                            [(ngModel)]="defect.severity" name="severity" required>
+                      <option value="Low">Bajo</option>
+                      <option value="Medium">Medio</option>
+                      <option value="High">Alto</option>
+                      <option value="Critical">Crítico</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6 mb-3">
+                    <label for="projectId" class="form-label">Proyecto *</label>
+                    <select class="form-select" id="projectId" 
+                            [(ngModel)]="defect.projectId" name="projectId" required>
+                      <option [ngValue]="null">Seleccionar proyecto...</option>
+                      <option *ngFor="let project of projects" [ngValue]="project.id">
+                        {{project.name}}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="reportedBy" class="form-label">Reportado por *</label>
+                    <input type="text" class="form-control" id="reportedBy" 
+                           [(ngModel)]="defect.reportedBy" name="reportedBy" required>
+                  </div>
+
+                  <div class="col-md-6 mb-3">
+                    <label for="assignedTo" class="form-label">Asignado a</label>
+                    <input type="text" class="form-control" id="assignedTo" 
+                           [(ngModel)]="defect.assignedTo" name="assignedTo">
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                  <a routerLink="/defects" class="btn btn-secondary">Cancelar</a>
+                  <button type="submit" class="btn btn-primary" 
+                          [disabled]="!defectForm.valid || submitting">
+                    <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+                    Guardar Defecto
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-
-          <div class="form-actions">
-            <a routerLink="/defects" class="btn-secondary">Cancelar</a>
-            <button type="submit" [disabled]="!defectForm.form.valid || isSubmitting" class="btn-primary">
-              {{ isSubmitting ? 'Guardando...' : 'Registrar Defecto' }}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
-  `,
-  styles: [`
-<<<<<<< HEAD
-    .page-container {
-      min-height: 90vh; display: flex; justify-content: center; padding: 2rem; background-color: #f3f4f6;
-    }
-    .form-card {
-      background: white; width: 100%; max-width: 600px; padding: 2.5rem;
-      border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); height: fit-content;
-=======
-    .page-container { 
-      min-height: 90vh; display: flex; justify-content: center; padding: 2rem; background-color: #f3f4f6; 
-    }
-    .form-card { 
-      background: white; width: 100%; max-width: 600px; padding: 2.5rem; 
-      border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); h-fit: content;
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-    }
-    .form-header { margin-bottom: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; }
-    .form-header h2 { margin: 0; color: #111827; font-size: 1.5rem; font-weight: 700; }
-    .form-header p { color: #6b7280; margin-top: 0.5rem; }
-
-    .form-group { margin-bottom: 1.5rem; }
-    .form-group label { display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem; }
-<<<<<<< HEAD
-    .form-input, .form-select {
-      width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px;
-      font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
-      box-sizing: border-box;
-    }
-    .form-input:focus, .form-select:focus {
-      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-=======
-    
-    .form-input, .form-select { 
-      width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; 
-      font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
-      box-sizing: border-box; /* Crucial para que no se salga del contenedor */
-    }
-    .form-input:focus, .form-select:focus { 
-      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-    }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-    .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
-<<<<<<< HEAD
-
-    .btn-primary {
-=======
-    
-    .btn-primary { 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-      background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none;
-      border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
-    }
-    .btn-primary:disabled { background-color: #93c5fd; cursor: not-allowed; }
-    .btn-primary:hover:not(:disabled) { background-color: #1d4ed8; }
-
-<<<<<<< HEAD
-    .btn-secondary {
-      background-color: white; color: #374151; padding: 0.75rem 1.5rem;
-      border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500;
-=======
-    .btn-secondary { 
-      background-color: white; color: #374151; padding: 0.75rem 1.5rem; 
-      border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-      text-decoration: none; cursor: pointer;
-    }
-    .btn-secondary:hover { background-color: #f9fafb; }
-
-<<<<<<< HEAD
-    .alert-error {
-      background-color: #fee2e2; color: #991b1b; padding: 1rem;
-      border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500;
-=======
-    .alert-error { 
-      background-color: #fee2e2; color: #991b1b; padding: 1rem; 
-      border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-    }
-  `]
+  `
 })
-export class DefectCreateComponent {
-  defect: Defect = {
+export class DefectCreateComponent implements OnInit {
+  defect: CreateDefectDto = {
     title: '',
     description: '',
     severity: DefectSeverity.Medium,
-    status: DefectStatus.New,
-<<<<<<< HEAD
-    projectId: 1,
-=======
-    projectId: 1, 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-    reportedBy: 'Tester'
+    projectId: 0,
+    reportedBy: ''
   };
 
-  canCreate: boolean = false;
-  isSubmitting: boolean = false;
+  projects: Project[] = [];
+  submitting = false;
 
   constructor(
-<<<<<<< HEAD
     private defectService: DefectService,
-=======
-    private defectService: DefectService, 
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
-    private router: Router,
-    private permService: PermissionService
-  ) {
-    this.canCreate = this.permService.canCreateDefect();
+    private projectService: ProjectService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProjects();
   }
 
-  onSubmit() {
-    console.log('Intentando enviar defecto:', this.defect);
-    this.isSubmitting = true;
-<<<<<<< HEAD
+  loadProjects(): void {
+    this.projectService.getAllProjects().subscribe({
+      next: (projects: any[]) => this.projects = projects,
+      error: (err: any) => console.error('Error loading projects:', err)
+    });
+  }
 
-=======
-    
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
+  onSubmit(): void {
+    if (!this.defect.projectId) {
+      alert('Por favor seleccione un proyecto');
+      return;
+    }
+
+    this.submitting = true;
     this.defectService.createDefect(this.defect).subscribe({
-      next: (res) => {
-        console.log('Defecto creado exitosamente:', res);
+      next: () => {
         this.router.navigate(['/defects']);
       },
-      error: (err) => {
-        console.error('Error creando defecto:', err);
-        this.isSubmitting = false;
-        alert('Error al crear. Revisa la consola (F12) para más detalles.');
+      error: (err: any) => {
+        console.error('Error creating defect:', err);
+        alert('Error al crear el defecto');
+        this.submitting = false;
       }
     });
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d

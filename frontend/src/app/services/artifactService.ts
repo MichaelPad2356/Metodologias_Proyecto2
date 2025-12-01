@@ -54,7 +54,6 @@ export class ArtifactService {
     return this.http.post<Artifact>(this.apiUrl, data);
   }
 
-<<<<<<< HEAD
   updateArtifact(id: number, dto: UpdateArtifactDto): Observable<Artifact> {
     return this.http.put<Artifact>(`${this.apiUrl}/${id}`, dto);
   }
@@ -95,13 +94,6 @@ export class ArtifactService {
   downloadVersion(artifactId: number, versionNumber: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${artifactId}/versions/${versionNumber}/download`, {
       responseType: 'blob'
-=======
-  updateStatus(artifactId: number, newStepId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${artifactId}/status`, {
-      newStepId: newStepId,
-      comments: 'Cambio de estado desde el panel',
-      changedBy: 'Usuario Demo'
->>>>>>> origin/feature/-entregable
     });
   }
 }

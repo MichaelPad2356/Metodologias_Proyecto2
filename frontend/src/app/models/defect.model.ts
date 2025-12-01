@@ -1,5 +1,3 @@
-import { Artifact } from "./artifact.model";
-
 export enum DefectSeverity {
   Low = 'Low',
   Medium = 'Medium',
@@ -15,19 +13,39 @@ export enum DefectStatus {
 }
 
 export interface Defect {
-  id?: number;
+  id: number;
   title: string;
   description: string;
   severity: DefectSeverity;
   status: DefectStatus;
   projectId: number;
   artifactId?: number;
-  artifact?: Artifact;
-  reportedBy?: string;
+  reportedBy: string;
   assignedTo?: string;
-  createdAt?: Date;
-<<<<<<< HEAD
+  createdAt: Date;
+  updatedAt?: Date;
 }
-=======
+
+export interface CreateDefectDto {
+  title: string;
+  description: string;
+  severity: DefectSeverity;
+  projectId: number;
+  artifactId?: number;
+  reportedBy: string;
+  assignedTo?: string;
 }
->>>>>>> 472c841cee103fffcd9ca2f9fe1589083cdecf5d
+
+export const DefectSeverityLabels: { [key: string]: string } = {
+  [DefectSeverity.Low]: 'Bajo',
+  [DefectSeverity.Medium]: 'Medio',
+  [DefectSeverity.High]: 'Alto',
+  [DefectSeverity.Critical]: 'Crítico'
+};
+
+export const DefectStatusLabels: { [key: string]: string } = {
+  [DefectStatus.New]: 'Nuevo',
+  [DefectStatus.Assigned]: 'Asignado',
+  [DefectStatus.Fixed]: 'Corregido',
+  [DefectStatus.Closed]: 'Cerrado'
+};

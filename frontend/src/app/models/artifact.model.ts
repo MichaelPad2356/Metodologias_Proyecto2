@@ -122,7 +122,6 @@ export interface ArtifactVersion {
   downloadUrl?: string;
 }
 
-<<<<<<< HEAD
 // HU-010: Interface para comparación de versiones
 export interface VersionComparison {
   version1: ArtifactVersion;
@@ -146,18 +145,6 @@ export interface VersionHistoryItem {
   createdAt: Date;
   fileName?: string;
   fileSize?: number;
-=======
-export interface WorkflowStep {
-  id: number;
-  name: string;
-  order: number;
-}
-
-export interface Workflow {
-  id: number;
-  name: string;
-  steps: WorkflowStep[];
->>>>>>> origin/feature/-entregable
 }
 
 export interface Artifact {
@@ -165,18 +152,9 @@ export interface Artifact {
   name: string;
   description: string;
   isMandatory: boolean;
-
-  // AGREGAR ESTOS CAMPOS NUEVOS:
-  workflowId?: number;
-  workflow?: Workflow;
-  currentStepId?: number;
-  currentStep?: WorkflowStep;
-
-  // ... el resto de tus campos (type, author, etc.) ...
-  type: any;
-  author: string;
-  // etc...
+  type: ArtifactType;
   typeName: string;
+  author: string;
   projectPhaseId: number;
   status: ArtifactStatus;
   statusName: string;
