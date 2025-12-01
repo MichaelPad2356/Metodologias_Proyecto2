@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -10,9 +11,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251201044251_AddWorkflowsTable")]
+    partial class AddWorkflowsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -61,13 +64,9 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-<<<<<<< HEAD
-                    b.ToTable("Artifacts", (string)null);
-=======
                     b.HasIndex("WorkflowId");
 
                     b.ToTable("Artifacts");
->>>>>>> origin/feature/-entregable
                 });
 
             modelBuilder.Entity("backend.Models.ArtifactHistory", b =>
@@ -141,7 +140,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ArtifactId");
 
-                    b.ToTable("ArtifactVersions", (string)null);
+                    b.ToTable("ArtifactVersions");
                 });
 
             modelBuilder.Entity("backend.Models.AuditLog", b =>
@@ -181,7 +180,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("backend.Models.Deliverable", b =>
@@ -209,7 +208,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("Deliverables", (string)null);
+                    b.ToTable("Deliverables");
                 });
 
             modelBuilder.Entity("backend.Models.Iteracion", b =>
@@ -254,7 +253,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Iteraciones", (string)null);
+                    b.ToTable("Iteraciones");
                 });
 
             modelBuilder.Entity("backend.Models.Iteration", b =>
@@ -295,7 +294,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Iterations", (string)null);
+                    b.ToTable("Iterations");
                 });
 
             modelBuilder.Entity("backend.Models.IterationTask", b =>
@@ -348,7 +347,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("IterationTasks", (string)null);
+                    b.ToTable("IterationTasks");
                 });
 
             modelBuilder.Entity("backend.Models.Microincrement", b =>
@@ -392,7 +391,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectPhaseId");
 
-                    b.ToTable("Microincrements", (string)null);
+                    b.ToTable("Microincrements");
                 });
 
             modelBuilder.Entity("backend.Models.Project", b =>
@@ -464,7 +463,7 @@ namespace backend.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("backend.Models.ProjectPhase", b =>
@@ -495,7 +494,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("ProjectPhases", (string)null);
+                    b.ToTable("ProjectPhases");
                 });
 
             modelBuilder.Entity("backend.Models.ProjectPlanVersion", b =>
@@ -546,7 +545,7 @@ namespace backend.Migrations
                     b.HasIndex("ProjectId", "Version")
                         .IsUnique();
 
-                    b.ToTable("ProjectPlanVersions", (string)null);
+                    b.ToTable("ProjectPlanVersions");
                 });
 
             modelBuilder.Entity("backend.Models.Workflow", b =>
