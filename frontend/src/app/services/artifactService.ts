@@ -1,7 +1,42 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Artifact } from '../models/artifact.model';
+import { Artifact, ArtifactVersion, VersionComparison } from '../models/artifact.model';
+
+export interface TransitionArtifactsResponse {
+  phaseId: number;
+  artifacts: Artifact[];
+  mandatoryTypes: { type: number; typeName: string }[];
+  missingMandatory: { type: number; typeName: string }[];
+  canClose: boolean;
+}
+
+export interface ClosureValidationResponse {
+  canClose: boolean;
+  missingArtifacts: string[];
+  pendingApproval: { type: number; typeName: string }[];
+  checklistValidation: {
+    isValid: boolean;
+    pendingItems: string[];
+  };
+}
+
+export interface UpdateArtifactDto {
+  status?: number;
+  buildIdentifier?: string;
+  buildDownloadUrl?: string;
+  closureChecklistJson?: string;
+}
+
+// HU-010: Response para historial de versiones
+export interface VersionsResponse {
+  artifactId: number;
+  artifactType: string;
+  projectName: string;
+  phaseName: string;
+  totalVersions: number;
+  versions: ArtifactVersion[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -20,8 +55,6 @@ export class ArtifactService {
   }
 
   createArtifact(data: FormData): Observable<Artifact> {
-    // No se establece Content-Type aquí, el navegador lo hará por nosotros
-    // y añadirá el 'boundary' correcto para multipart/form-data.
     return this.http.post<Artifact>(this.apiUrl, data);
   }
 

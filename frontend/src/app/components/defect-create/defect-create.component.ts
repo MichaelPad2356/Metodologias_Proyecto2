@@ -65,6 +65,11 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
                      placeholder="Nombre del desarrollador" class="form-input">
             </div>
           </div>
+          <a routerLink="/defects" class="btn-back">
+            ← Volver a la lista
+          </a>
+        </div>
+      </div>
 
           <div class="form-group">
             <label>Artefacto Relacionado (Opcional)</label>
@@ -83,55 +88,177 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
               {{ isSubmitting ? 'Guardando...' : 'Registrar Defecto' }}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   `,
   styles: [`
-    .page-container { 
-      min-height: 90vh; display: flex; justify-content: center; padding: 2rem; background-color: #f3f4f6; 
+    .defects-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
     }
-    .form-card { 
-      background: white; width: 100%; max-width: 600px; padding: 2.5rem; 
-      border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); h-fit: content;
+    .defects-header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      padding: 2rem;
+      color: white;
     }
-    .form-header { margin-bottom: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; }
-    .form-header h2 { margin: 0; color: #111827; font-size: 1.5rem; font-weight: 700; }
-    .form-header p { color: #6b7280; margin-top: 0.5rem; }
-
-    .form-group { margin-bottom: 1.5rem; }
-    .form-group label { display: block; font-weight: 500; color: #374151; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    
-    .form-input, .form-select { 
-      width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; 
-      font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
-      box-sizing: border-box; /* Crucial para que no se salga del contenedor */
+    .header-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .form-input:focus, .form-select:focus { 
-      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-    .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
-    
-    .btn-primary { 
-      background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none;
-      border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    .title-section .icon {
+      font-size: 2.5rem;
     }
-    .btn-primary:disabled { background-color: #93c5fd; cursor: not-allowed; }
-    .btn-primary:hover:not(:disabled) { background-color: #1d4ed8; }
-
-    .btn-secondary { 
-      background-color: white; color: #374151; padding: 0.75rem 1.5rem; 
-      border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; 
-      text-decoration: none; cursor: pointer;
+    .title-section h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
     }
-    .btn-secondary:hover { background-color: #f9fafb; }
-
-    .alert-error { 
-      background-color: #fee2e2; color: #991b1b; padding: 1rem; 
-      border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; 
+    .title-section .subtitle {
+      margin: 0.25rem 0 0 0;
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+    .btn-back {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+    .form-content {
+      max-width: 900px;
+      margin: -2rem auto 2rem auto;
+      padding: 0 1rem;
+    }
+    .card {
+      background: white;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-body {
+      padding: 2rem;
+    }
+    .form-section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e3a5f;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    .form-label {
+      display: block;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .form-control, .form-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      background-color: #fafafa;
+    }
+    .form-control:focus, .form-select:focus {
+      outline: none;
+      border-color: #10b981;
+      background-color: white;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    .form-control::placeholder {
+      color: #9ca3af;
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .btn-cancel {
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 500;
+      text-decoration: none;
+      background-color: #f3f4f6;
+      color: #4b5563;
+      transition: all 0.2s ease;
+    }
+    .btn-cancel:hover {
+      background-color: #e5e7eb;
+      color: #374151;
+    }
+    .btn-submit {
+      padding: 0.75rem 2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      border: none;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid white;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   `]
 })
@@ -201,14 +328,13 @@ export class DefectCreateComponent implements OnInit {
     this.isSubmitting = true;
     
     this.defectService.createDefect(this.defect).subscribe({
-      next: (res) => {
-        console.log('Defecto creado exitosamente:', res);
+      next: () => {
         this.router.navigate(['/defects']);
       },
-      error: (err) => {
-        console.error('Error creando defecto:', err);
-        this.isSubmitting = false;
-        alert('Error al crear. Revisa la consola (F12) para más detalles.');
+      error: (err: any) => {
+        console.error('Error creating defect:', err);
+        alert('Error al crear el defecto');
+        this.submitting = false;
       }
     });
   }

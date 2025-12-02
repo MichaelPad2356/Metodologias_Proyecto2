@@ -68,5 +68,12 @@ public class Artifact
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
+    // HU-009: Campos para Build Final
+    public string? BuildIdentifier { get; set; }
+    public string? BuildDownloadUrl { get; set; }
+    
+    // HU-009: Campo para Documento de Cierre
+    public string? ClosureChecklistJson { get; set; }
+
     public ICollection<ArtifactVersion> Versions { get; set; } = new List<ArtifactVersion>();
 }

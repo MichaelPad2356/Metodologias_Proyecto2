@@ -29,11 +29,11 @@ export class PermissionService {
   }
 
   canApproveArtifact(): boolean {
-    return ['Admin', 'ProjectManager'].includes(this.currentUserRole);
+    return ['admin', 'manager'].includes(this.currentUserRole);
   }
 
   canCreateDefect(): boolean {
-    return ['Admin', 'Tester'].includes(this.currentUserRole);
+    return ['admin', 'developer', 'tester', 'analyst'].includes(this.currentUserRole);
   }
 
   canDeleteProject(): boolean {
@@ -46,5 +46,25 @@ export class PermissionService {
     if (this.currentUserRole === 'Developer' && currentStatus === 'Pending') return true; // Dev can start review? Maybe not.
     // Let's stick to specific actions
     return false;
+  }
+
+  canEditStatus(): boolean {
+    return ['admin', 'manager', 'developer'].includes(this.currentUserRole);
+  }
+
+  canDeleteDefect(): boolean {
+    return ['admin'].includes(this.currentUserRole);
+  }
+
+  canExportHistory(): boolean {
+    return ['admin', 'manager', 'analyst'].includes(this.currentUserRole);
+  }
+
+  getCurrentUserRole(): string {
+    return this.currentUserRole;
+  }
+
+  setCurrentUserRole(role: string): void {
+    this.currentUserRole = role;
   }
 }

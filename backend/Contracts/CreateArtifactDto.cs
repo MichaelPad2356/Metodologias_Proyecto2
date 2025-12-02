@@ -3,15 +3,30 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend.Contracts;
 
-public class CreateArtifactDto
-{
-    [Required]
-    public ArtifactType Type { get; set; }
+public record CreateArtifactDto(
+    [Required] ArtifactType Type,
+    [Required] int ProjectPhaseId,
+    bool IsMandatory = false,
+    ArtifactStatus Status = ArtifactStatus.Pending,
+    // HU-009: Campos de transición
+    string? BuildIdentifier = null,
+    string? BuildDownloadUrl = null,
+    string? ClosureChecklistJson = null
+);
 
-    [Required]
-    public int ProjectPhaseId { get; set; }
+public record CreateArtifactVersionDto(
+    [Required] int ArtifactId,
+    [Required] string Author,
+    string? Observations = null,
+    string? Content = null
+    // File-related properties are handled via form data
+);
 
-    public bool IsMandatory { get; set; }
+// HU-009: DTO para actualizar información de build
+public record UpdateBuildInfoDto(
+    string? BuildIdentifier,
+    string? BuildDownloadUrl
+);
 
     [Required]
     [MaxLength(100)]
