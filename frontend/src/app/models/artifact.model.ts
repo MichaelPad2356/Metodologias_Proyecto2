@@ -5,33 +5,45 @@ export enum ArtifactStatus {
 }
 
 export enum ArtifactType {
-  // Fase Inicio
+  // Inception
   VisionDocument,
   StakeholderList,
   InitialRiskList,
   InitialProjectPlan,
   HighLevelUseCaseModel,
   
-  // Fase Elaboración
-  SoftwareArchitectureDocument,
+  // Elaboration
   DetailedUseCaseModel,
-  RefinedRiskList,
+  DomainModel,
+  SupplRequirements,
+  NonFunctionalReqs,
+  ArchitectureDoc,
+  TechnicalDiagrams,
   IterationPlan,
-  
-  // Fase Construcción
+  UIPrototype,
+
+  // Construction
+  DetailedDesignModel,
   SourceCode,
+  TestCases,
+  TestResults,
+  IterationLog,
+
+  // Transition
+  UserManual,
+  TechnicalManual,
+  DeploymentPlan,
+  ClosureDoc,
+  FinalBuild,
+  BetaTestReport,
+
+  // Missing types
+  SoftwareArchitectureDocument,
+  RefinedRiskList,
   UnitTestReport,
   IntegrationTestReport,
   UserGuide,
-  
-  // Fase Transición (HU-009)
-  UserManual,           // Manual de Usuario
-  TechnicalManual,      // Manual Técnico
-  DeploymentPlan,       // Plan de Despliegue
-  ClosureDocument,      // Documento de Cierre
-  FinalBuild,           // Build Final
-  BetaTestReport,       // Reporte de Pruebas Beta
-  
+
   Other,
 }
 
@@ -53,7 +65,7 @@ export const ArtifactTypeLabels: { [key: number]: string } = {
   [ArtifactType.UserManual]: 'Manual de Usuario',
   [ArtifactType.TechnicalManual]: 'Manual Técnico',
   [ArtifactType.DeploymentPlan]: 'Plan de Despliegue',
-  [ArtifactType.ClosureDocument]: 'Documento de Cierre',
+  [ArtifactType.ClosureDoc]: 'Documento de Cierre',
   [ArtifactType.FinalBuild]: 'Build Final',
   [ArtifactType.BetaTestReport]: 'Reporte de Pruebas Beta',
   [ArtifactType.Other]: 'Otro',
@@ -78,7 +90,7 @@ export const MandatoryArtifactsByPhase: { [phase: string]: ArtifactType[] } = {
     ArtifactType.UserManual,
     ArtifactType.TechnicalManual,
     ArtifactType.DeploymentPlan,
-    ArtifactType.ClosureDocument,
+    ArtifactType.ClosureDoc,
     ArtifactType.FinalBuild,
     ArtifactType.BetaTestReport,
   ],
@@ -116,10 +128,10 @@ export interface ArtifactVersion {
   observations?: string;  // HU-010: Descripción de cambios
   content?: string;
   originalFileName?: string;
-  contentType?: string;  // HU-010: Tipo MIME
-  fileSize?: number;  // HU-010: Tamaño en bytes
+  repositoryUrl?: string;
   createdAt: Date;
   downloadUrl?: string;
+  fileSize?: number;
 }
 
 // HU-010: Interface para comparación de versiones
@@ -158,6 +170,7 @@ export interface Artifact {
   projectPhaseId: number;
   status: ArtifactStatus | string;  // Puede ser número o string del enum
   statusName: string;
+  assignedTo?: string;
   createdAt: Date;
   versionCount: number;  // Número de versiones
   latestVersion?: ArtifactVersion;  // Última versión

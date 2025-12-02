@@ -10,30 +10,41 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Project> Projects => Set<Project>();
-    public DbSet<ProjectPhase> ProjectPhases => Set<ProjectPhase>();
-    public DbSet<Iteration> Iterations => Set<Iteration>();
-    public DbSet<IterationTask> IterationTasks => Set<IterationTask>();
-    public DbSet<Microincrement> Microincrements => Set<Microincrement>();
-    public DbSet<Artifact> Artifacts => Set<Artifact>();
-    public DbSet<ArtifactVersion> ArtifactVersions => Set<ArtifactVersion>();
-    public DbSet<ProjectPlanVersion> ProjectPlanVersions => Set<ProjectPlanVersion>();
-    public DbSet<Deliverable> Deliverables => Set<Deliverable>();
-    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-    public DbSet<Defect> Defects => Set<Defect>();
-    public DbSet<Workflow> Workflows => Set<Workflow>();
-    public DbSet<WorkflowStep> WorkflowSteps => Set<WorkflowStep>();
-    public DbSet<Iteracion> Iteraciones => Set<Iteracion>();
+    public DbSet<Project> Projects { get; set; }
+    public DbSet<ProjectPhase> ProjectPhases { get; set; }
+    public DbSet<Deliverable> Deliverables { get; set; }
+    public DbSet<Microincrement> Microincrements { get; set; }
+    public DbSet<Artifact> Artifacts { get; set; }
+    public DbSet<ArtifactVersion> ArtifactVersions { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<ProjectPlanVersion> ProjectPlanVersions { get; set; }
+    public DbSet<Iteration> Iterations { get; set; }
+    public DbSet<IterationTask> IterationTasks { get; set; }
+    public DbSet<Iteracion> Iteraciones { get; set; }
+    public DbSet<Defect> Defects { get; set; }
+    public DbSet<Workflow> Workflows { get; set; }
+    public DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure ProjectPhase relationship
-        modelBuilder.Entity<ProjectPhase>()
-            .HasOne(pp => pp.Project)
-            .WithMany(p => p.Phases)
-            .HasForeignKey(pp => pp.ProjectId);
+        // Defect configuration
+        modelBuilder.Entity<Defect>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Severity).HasDefaultValue("Low");
+            entity.Property(e => e.Status).HasDefaultValue("New");
+        });
+
+        // Project configuration
+        modelBuilder.Entity<Project>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Status).HasConversion<string>();
+        });
+
 
         // Configure Iteration relationship
         modelBuilder.Entity<Iteration>()

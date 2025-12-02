@@ -27,14 +27,14 @@
   <!-- RESUMEN DE ESTADO -->
   @if (!loading && !error) {
     <div class="status-summary">
-      <div class="summary-card" [class.complete]="(missingMandatory?.length || 0) === 0">
-        <div class="summary-icon">{{ (missingMandatory?.length || 0) === 0 ? '✅' : '⚠️' }}</div>
+      <div class="summary-card" [class.complete]="(missingMandatory.length || 0) === 0">
+        <div class="summary-icon">{{ (missingMandatory.length || 0) === 0 ? '✅' : '⚠️' }}</div>
         <div class="summary-content">
           <h4>Artefactos Obligatorios</h4>
-          @if ((missingMandatory?.length || 0) === 0) {
+          @if ((missingMandatory.length || 0) === 0) {
             <p>Todos los artefactos obligatorios están registrados</p>
           } @else {
-            <p>Faltan {{ missingMandatory?.length || 0 }} artefactos obligatorios</p>
+            <p>Faltan {{ missingMandatory.length || 0 }} artefactos obligatorios</p>
             <ul class="missing-list">
               @for (missing of missingMandatory; track missing.type) {
                 <li>{{ missing.typeName }}</li>
@@ -53,8 +53,8 @@
           } @else {
             <p>Requisitos pendientes:</p>
             <ul class="requirements-list">
-              @if ((missingMandatory?.length || 0) > 0) {
-                <li>❌ Faltan {{ missingMandatory?.length }} artefactos obligatorios</li>
+              @if ((missingMandatory.length || 0) > 0) {
+                <li>❌ Faltan {{ missingMandatory.length }} artefactos obligatorios</li>
               }
               @if (getPendingApprovalCount() > 0) {
                 <li>⏳ {{ getPendingApprovalCount() }} artefactos pendientes de aprobación</li>
@@ -113,7 +113,7 @@
                   📜 Historial
                 </button>
                 
-                @if (typeInfo.type === ArtifactType.ClosureDocument) {
+                @if (typeInfo.type === ArtifactType.ClosureDoc) {
                   <button class="btn btn-sm btn-info" (click)="openChecklistModal(artifact)">
                     📋 Ver Checklist
                   </button>
@@ -207,7 +207,7 @@
         }
 
         <!-- Checklist para Documento de Cierre -->
-        @if (selectedArtifactType === ArtifactType.ClosureDocument) {
+        @if (selectedArtifactType === ArtifactType.ClosureDoc) {
           <div class="checklist-section">
             <h4>Checklist de Criterios de Cierre</h4>
             <div class="progress-bar-container">

@@ -14,21 +14,8 @@ public record CreateArtifactDto(
     string? ClosureChecklistJson = null
 );
 
-public record CreateArtifactVersionDto(
-    [Required] int ArtifactId,
-    [Required] string Author,
-    string? Observations = null,
-    string? Content = null
-    // File-related properties are handled via form data
-);
-
 // HU-009: DTO para actualizar información de build
 public record UpdateBuildInfoDto(
     string? BuildIdentifier,
     string? BuildDownloadUrl
-);
-
-// HU-009: DTO para actualizar checklist de cierre
-public record UpdateClosureChecklistDto(
-    string ClosureChecklistJson
 );

@@ -18,6 +18,7 @@ builder.Services.AddScoped<IPdfExportService, PdfExportService>();
 builder.Services.AddScoped<IPlanVersionService, PlanVersionService>();
 builder.Services.AddScoped<IIterationService, IterationService>();
 builder.Services.AddScoped<IMicroincrementService, MicroincrementService>();
+builder.Services.AddScoped<IDefectService, DefectService>();
 
 // Configurar CORS para desarrollo
 builder.Services.AddCors(options =>

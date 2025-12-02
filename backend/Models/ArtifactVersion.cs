@@ -29,5 +29,8 @@ public class ArtifactVersion
     public string? ContentType { get; set; }
     public long? FileSize { get; set; }  // HU-010: Tamaño del archivo para comparación
 
+    // HU-008: Enlace a repositorio externo
+    public string? RepositoryUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

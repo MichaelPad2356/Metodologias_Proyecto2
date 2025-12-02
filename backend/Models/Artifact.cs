@@ -11,33 +11,38 @@ public enum ArtifactStatus
 
 public enum ArtifactType
 {
-    // Fase Inicio
+    // Inception
     VisionDocument,
     StakeholderList,
     InitialRiskList,
     InitialProjectPlan,
     HighLevelUseCaseModel,
     
-    // Fase Elaboración
-    SoftwareArchitectureDocument,
+    // Elaboration (HU-007)
     DetailedUseCaseModel,
-    RefinedRiskList,
+    DomainModel,
+    SupplRequirements,
+    NonFunctionalReqs,
+    ArchitectureDoc,
+    TechnicalDiagrams,
     IterationPlan,
-    
-    // Fase Construcción
+    UIPrototype,
+
+    // Construction (HU-008)
+    DetailedDesignModel,
     SourceCode,
-    UnitTestReport,
-    IntegrationTestReport,
-    UserGuide,
-    
-    // Fase Transición (HU-009)
+    TestCases,
+    TestResults,
+    IterationLog,
+
+    // Transition (HU-009)
     UserManual,
     TechnicalManual,
     DeploymentPlan,
-    ClosureDocument,
+    ClosureDoc,
     FinalBuild,
     BetaTestReport,
-    
+
     Other
 }
 
@@ -56,6 +61,9 @@ public class Artifact
 
     [Required]
     public ArtifactStatus Status { get; set; } = ArtifactStatus.Pending;
+
+    // HU-012: Responsable del estado actual
+    public string? AssignedTo { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }

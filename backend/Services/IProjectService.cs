@@ -12,6 +12,7 @@ public interface IProjectService
     Task<Result<bool>> ArchiveProjectAsync(int id, string? userName = null);
     Task<Result<bool>> UnarchiveProjectAsync(int id, string? userName = null);
     Task<Result<bool>> DeleteProjectAsync(int id, string? userName = null);
+    Task<Result<bool>> UpdatePhaseStatusAsync(int phaseId, string newStatus);
 }
 
 public record Result<T>

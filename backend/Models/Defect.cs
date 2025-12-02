@@ -3,56 +3,31 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace backend.Models;
 
-public enum DefectSeverity
-{
-    Low,
-    Medium,
-    High,
-    Critical
-}
-
-public enum DefectStatus
-{
-    New,
-    Assigned,
-    Fixed,
-    Closed
-}
-
 public class Defect
 {
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    [MaxLength(2000)]
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     [Required]
-    public DefectSeverity Severity { get; set; } = DefectSeverity.Medium;
+    public string Severity { get; set; } = "Low";
 
     [Required]
-    public DefectStatus Status { get; set; } = DefectStatus.New;
+    public string Status { get; set; } = "New";
 
-    [Required]
     public int ProjectId { get; set; }
-    
-    [ForeignKey("ProjectId")]
     public Project? Project { get; set; }
-
-    public int? ArtifactId { get; set; }
     
-    [ForeignKey("ArtifactId")]
+    // HU-014: Vinculación a artefactos
+    public int? ArtifactId { get; set; }
     public Artifact? Artifact { get; set; }
 
-    [MaxLength(100)]
     public string? ReportedBy { get; set; }
-
-    [MaxLength(100)]
+    
     public string? AssignedTo { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
 }

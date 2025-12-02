@@ -21,11 +21,17 @@
       <a routerLink="/defects" class="nav-item" routerLinkActive="active">
         <span class="icon">🐞</span> Defectos
       </a>
+    </div>
 
-      <!-- Link Flujos de Trabajo -->
-      <a routerLink="/workflows" class="nav-item" routerLinkActive="active">
-        <span class="icon">⚙️</span> Flujos de Trabajo
-      </a>
+    <!-- Role Switcher -->
+    <div class="role-switcher" style="margin-left: auto; display: flex; align-items: center; gap: 10px; color: white;">
+      <span style="font-size: 0.9rem; color: #9ca3af;">Simular Rol:</span>
+      <select class="form-select form-select-sm" 
+              style="background-color: #1f2937; color: white; border: 1px solid #374151; padding: 4px 8px; border-radius: 4px;"
+              [(ngModel)]="currentRole" 
+              (change)="onRoleChange()">
+        <option *ngFor="let r of roles" [value]="r">{{r}}</option>
+      </select>
     </div>
   </div>
 </nav>

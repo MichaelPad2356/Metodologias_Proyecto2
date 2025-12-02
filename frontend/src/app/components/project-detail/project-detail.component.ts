@@ -6,6 +6,7 @@ import { ProjectService } from '../../services/project.service';
 import { Project, PROJECT_STATUS_LABELS, PHASE_STATUS_LABELS, ProjectPlanVersion } from '../../models/project.model';
 import { ProjectProgressComponent } from '../project-progress/project-progress.component';
 import { ArtifactsManagerComponent } from '../artifacts-manager/artifacts-manager.component';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -18,6 +19,7 @@ export class ProjectDetailComponent implements OnInit {
   project: Project | null = null;
   loading = true;
   error: string | null = null;
+  canDelete: boolean = false;
 
   // Cache para datos parseados del plan (evita ExpressionChangedAfterItHasBeenCheckedError)
   private _cronogramaCache: Array<{ date: string; description: string }> | null = null;
@@ -35,7 +37,8 @@ export class ProjectDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private permService: PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +47,9 @@ export class ProjectDetailComponent implements OnInit {
       if (id) {
         this.loadProject(id);
       }
+    });
+    this.permService.role$.subscribe(() => {
+      this.canDelete = this.permService.canDeleteProject();
     });
   }
 
@@ -320,41 +326,18 @@ export class ProjectDetailComponent implements OnInit {
     this.selectedVersion = null;
   }
 
-  checkAndAdvancePhase(phaseId: number): void {
-    if (confirm('¿Está seguro de completar esta fase? Se verificarán los artefactos obligatorios.')) {
-      this.projectService.checkPhaseArtifacts(phaseId).subscribe({
-        next: (response: any) => {
-          if (response.canAdvance) {
-            this.advancePhase(phaseId);
-          } else {
-            const incompleteList = response.incompleteArtifacts
-              .map((a: any) => `- ${a.name} (${a.type}): ${a.status}`)
-              .join('\n');
-            
-            alert(`❌ No se puede avanzar de fase.\n\n${response.message}\n\nArtefactos pendientes:\n${incompleteList}`);
-          }
-        },
-        error: (err) => {
-          console.error('Error al validar fase:', err);
-          alert('Error al validar la fase. Intente nuevamente.');
-        }
-      });
+  updatePhaseStatus(phase: any, newStatus: string): void {
+    if (!confirm(`¿Estás seguro de cambiar el estado de la fase a ${this.getPhaseStatusLabel(newStatus)}?`)) {
+      return;
     }
-  }
 
-  advancePhase(phaseId: number): void {
-    this.projectService.advancePhase(phaseId).subscribe({
-      next: (response: any) => {
-        alert(`✅ ${response.message}`);
-        this.loadProject(this.project!.id); // Recargar el proyecto para actualizar el estado
+    this.projectService.updatePhaseStatus(phase.id, newStatus).subscribe({
+      next: () => {
+        phase.status = newStatus;
       },
       error: (err) => {
-        console.error('Error al avanzar fase:', err);
-        if (err.error?.message) {
-          alert(`❌ ${err.error.message}`);
-        } else {
-          alert('Error al avanzar la fase. Intente nuevamente.');
-        }
+        console.error('Error actualizando fase:', err);
+        alert('Error al actualizar el estado de la fase');
       }
     });
   }

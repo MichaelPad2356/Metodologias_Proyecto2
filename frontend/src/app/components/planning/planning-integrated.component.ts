@@ -187,27 +187,16 @@ export class PlanningIntegratedComponent implements OnInit {
     // Recalcular progreso de la iteración
     this.recalcularProgresoIteracion(iteracion);
     
-    // Persistir cambios en el backend
-    this.actualizarIteracionEnBackend(iteracion);
-  }
-
-  actualizarIteracionEnBackend(iteracion: Iteracion) {
-    const dataToSend = {
-      ...iteracion,
-      tareas: iteracion.tareas,
-      projectId: this.projectId
-    };
-
-    this.planningService.actualizarIteracion(iteracion.id, dataToSend).subscribe({
+    // Guardar cambios en el backend
+    this.planningService.actualizarIteracion(iteracion.id, iteracion).subscribe({
       next: () => {
-        alert('✅ Cambios guardados correctamente');
+        alert('✅ Tarea guardada correctamente');
         this.cerrarModalTarea();
-        // Recargar datos para actualizar métricas (velocidad, etc.)
-        this.cargarDatos();
       },
       error: (err) => {
-        console.error('Error al guardar:', err);
-        alert('❌ Error al guardar los cambios: ' + (err.error?.mensaje || err.message));
+        alert('❌ Error al guardar la tarea: ' + err.message);
+        // Revertir cambios locales si falla (opcional, pero recomendado)
+        this.cargarDatos(); 
       }
     });
   }
@@ -221,23 +210,13 @@ export class PlanningIntegratedComponent implements OnInit {
     iteracion.tareas = iteracion.tareas.filter(t => t.id !== tareaId);
     this.recalcularProgresoIteracion(iteracion);
     
-    // Persistir cambios en el backend
-    const dataToSend = {
-      ...iteracion,
-      tareas: iteracion.tareas,
-      projectId: this.projectId
-    };
-
-    this.planningService.actualizarIteracion(iteracion.id, dataToSend).subscribe({
+    // Guardar cambios en el backend
+    this.planningService.actualizarIteracion(iteracion.id, iteracion).subscribe({
       next: () => {
-        alert('✅ Tarea eliminada correctamente');
-        // Recargar datos para actualizar métricas
-        this.cargarDatos();
+        alert('✅ Tarea eliminada');
       },
       error: (err) => {
-        console.error('Error al eliminar:', err);
-        alert('❌ Error al eliminar: ' + (err.error?.mensaje || err.message));
-        // Recargar datos para sincronizar
+        alert('❌ Error al eliminar la tarea: ' + err.message);
         this.cargarDatos();
       }
     });

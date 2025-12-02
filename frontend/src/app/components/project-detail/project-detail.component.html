@@ -147,16 +147,18 @@
                     {{ getPhaseStatusLabel(phase.status) }}
                   </span>
                 </div>
-                <!-- BOTÓN DE AVANZAR FASE -->
-                @if (phase.status === 'InProgress') {
-                  <button 
-                    class="btn btn-sm btn-primary advance-phase-btn"
-                    (click)="checkAndAdvancePhase(phase.id)"
-                    title="Validar artefactos obligatorios y avanzar fase"
-                  >
-                    ✅ Completar Fase
-                  </button>
-                }
+                <div class="phase-actions ms-auto">
+                  @if (phase.status === 'NotStarted') {
+                    <button class="btn btn-sm btn-success" (click)="updatePhaseStatus(phase, 'InProgress')">
+                      ▶ Iniciar
+                    </button>
+                  }
+                  @if (phase.status === 'InProgress') {
+                    <button class="btn btn-sm btn-primary" (click)="updatePhaseStatus(phase, 'Completed')">
+                      ✅ Completar
+                    </button>
+                  }
+                </div>
               </div>
               <!-- ARTEFACTOS PARA ESTA FASE -->
               <div class="artifacts-for-phase">
@@ -186,9 +188,11 @@
         <button class="btn btn-secondary" (click)="confirmArchive()">
           📦 Archivar Proyecto
         </button>
-        <button class="btn btn-danger" (click)="confirmDelete()">
-          🗑️ Eliminar Permanentemente
-        </button>
+        @if (canDelete) {
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            🗑️ Eliminar Permanentemente
+          </button>
+        }
       </div>
     }
     @if (project.status === 'Archived') {
@@ -196,9 +200,11 @@
         <button class="btn btn-primary" (click)="confirmUnarchive()">
           📤 Desarchivar Proyecto
         </button>
-        <button class="btn btn-danger" (click)="confirmDelete()">
-          🗑️ Eliminar Permanentemente
-        </button>
+        @if (canDelete) {
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            🗑️ Eliminar Permanentemente
+          </button>
+        }
       </div>
     }
   </div>

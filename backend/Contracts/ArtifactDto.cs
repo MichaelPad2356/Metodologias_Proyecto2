@@ -2,36 +2,35 @@ using backend.Models;
 
 namespace backend.Contracts;
 
-public record ArtifactDto(
-    int Id,
-    ArtifactType Type,
-    int ProjectPhaseId,
-    string? PhaseName,
-    bool IsMandatory,
-    ArtifactStatus Status,
-    DateTime CreatedAt,
-    DateTime? UpdatedAt,
-    int VersionCount,
-    ArtifactVersionDto? LatestVersion,
-    // HU-009: Campos de transición
-    string? BuildIdentifier,
-    string? BuildDownloadUrl,
-    string? ClosureChecklistJson
-);
+public class ArtifactDto
+{
+    public int Id { get; set; }
+    public ArtifactType Type { get; set; }
+    public string TypeName => Type.ToString();
+    public int ProjectPhaseId { get; set; }
+    public bool IsMandatory { get; set; }
+    public ArtifactStatus Status { get; set; }
+    public string StatusName => Status.ToString();
+    public string? AssignedTo { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<ArtifactVersionDto> Versions { get; set; } = new();
+    // HU-009: Campos adicionales
+    public string? BuildIdentifier { get; set; }
+    public string? BuildDownloadUrl { get; set; }
+    public string? ClosureChecklistJson { get; set; }
+}
 
-public record ArtifactVersionDto(
-    int Id,
-    int ArtifactId,
-    int VersionNumber,
-    string Author,
-    string? Observations,
-    string? Content,
-    string? FilePath,
-    string? OriginalFileName,
-    string? ContentType,
-    long? FileSize,
-    DateTime CreatedAt
-);
+public class ArtifactVersionDto
+{
+    public int Id { get; set; }
+    public int VersionNumber { get; set; }
+    public string Author { get; set; } = string.Empty;
+    public string? Content { get; set; }
+    public string? OriginalFileName { get; set; }
+    public string? RepositoryUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string? DownloadUrl { get; set; }
+}
 
 // HU-010: DTO para comparación de versiones
 public record VersionComparisonDto(
@@ -71,6 +70,6 @@ public record ClosureValidationResponse(
 
 public record ChecklistItem
 {
-    public string Label { get; set; } = "";
+    public string Label { get; set; } = string.Empty;
     public bool Completed { get; set; }
 }

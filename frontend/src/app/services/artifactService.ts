@@ -50,55 +50,57 @@ export class ArtifactService {
     return this.http.get<Artifact[]>(`${this.apiUrl}/phase/${phaseId}`);
   }
 
+  getArtifactsByProject(projectId: number): Observable<Artifact[]> {
+    return this.http.get<Artifact[]>(`${this.apiUrl}/project/${projectId}`);
+  }
+
   createArtifact(data: FormData): Observable<Artifact> {
     return this.http.post<Artifact>(this.apiUrl, data);
   }
 
-  updateArtifact(id: number, dto: UpdateArtifactDto): Observable<Artifact> {
-    return this.http.put<Artifact>(`${this.apiUrl}/${id}`, dto);
+  addVersion(artifactId: number, data: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${artifactId}/versions`, data);
   }
 
-  // Actualizar solo el estado
-  updateStatus(id: number, status: number): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}/status`, status);
+  updateArtifactStatus(artifactId: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${artifactId}/status`, JSON.stringify(status), {
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
-  addVersion(artifactId: number, data: FormData): Observable<ArtifactVersion> {
-    return this.http.post<ArtifactVersion>(`${this.apiUrl}/${artifactId}/versions`, data);
+  updateStatus(artifactId: number, status: number): Observable<any> {
+    // Convert number status to string if backend expects string, or just send number
+    // Based on previous code, backend expects string enum name
+    const statusMap: { [key: number]: string } = {
+      0: 'Pending',
+      1: 'InReview',
+      2: 'Approved'
+    };
+    const statusString = statusMap[status] || 'Pending';
+    return this.updateArtifactStatus(artifactId, statusString);
   }
 
-  // HU-009: Métodos específicos para fase de Transición
   getTransitionArtifacts(projectId: number): Observable<TransitionArtifactsResponse> {
     return this.http.get<TransitionArtifactsResponse>(`${this.apiUrl}/transition/${projectId}`);
+  }
+
+  updateArtifact(id: number, dto: UpdateArtifactDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, dto);
   }
 
   validateProjectClosure(projectId: number): Observable<ClosureValidationResponse> {
     return this.http.post<ClosureValidationResponse>(`${this.apiUrl}/validate-closure/${projectId}`, {});
   }
 
-  // HU-010: Métodos para control de versiones
-  
-  // Obtener todas las versiones de un artefacto
-  getVersions(artifactId: number): Observable<VersionsResponse> {
-    return this.http.get<VersionsResponse>(`${this.apiUrl}/${artifactId}/versions`);
+  compareVersions(artifactId: number, v1Id: number, v2Id: number): Observable<VersionComparison> {
+    return this.http.get<VersionComparison>(`${this.apiUrl}/${artifactId}/compare?v1=${v1Id}&v2=${v2Id}`);
   }
 
-  // Comparar metadatos de dos versiones
-  compareVersions(artifactId: number, v1: number, v2: number): Observable<VersionComparison> {
-    return this.http.get<VersionComparison>(`${this.apiUrl}/${artifactId}/versions/compare?v1=${v1}&v2=${v2}`);
-  }
-
-  // Exportar historial de versiones como JSON
   exportVersionHistory(artifactId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${artifactId}/history/export`, {
-      responseType: 'blob'
-    });
+    return this.http.get(`${this.apiUrl}/${artifactId}/history/export`, { responseType: 'blob' });
   }
 
-  // Descargar archivo de una versión específica
   downloadVersion(artifactId: number, versionNumber: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${artifactId}/versions/${versionNumber}/download`, {
-      responseType: 'blob'
-    });
+    return this.http.get(`${this.apiUrl}/${artifactId}/versions/${versionNumber}/download`, { responseType: 'blob' });
   }
 }

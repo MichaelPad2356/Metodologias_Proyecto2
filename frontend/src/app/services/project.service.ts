@@ -135,16 +135,11 @@ export class ProjectService {
   }
 
   /**
-   * Comprueba si se pueden avanzar las fases de un proyecto
+   * Actualiza el estado de una fase
    */
-  checkPhaseArtifacts(phaseId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/phases/${phaseId}/can-advance`);
-  }
-
-  /**
-   * Avanza una fase de un proyecto
-   */
-  advancePhase(phaseId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/phases/${phaseId}/advance`, {});
+  updatePhaseStatus(phaseId: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/phases/${phaseId}/status`, JSON.stringify(status), {
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

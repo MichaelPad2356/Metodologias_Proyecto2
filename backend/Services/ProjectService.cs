@@ -312,6 +312,37 @@ public class ProjectService : IProjectService
         return Result<bool>.Ok(true);
     }
 
+    public async Task<Result<bool>> UpdatePhaseStatusAsync(int phaseId, string newStatus)
+    {
+        var phase = await _context.ProjectPhases.FindAsync(phaseId);
+        if (phase == null)
+        {
+            return Result<bool>.Fail($"No se encontró la fase con ID {phaseId}");
+        }
+
+        if (Enum.TryParse<PhaseStatus>(newStatus, true, out var statusEnum))
+        {
+            // HU-011: Validar artefactos obligatorios antes de completar la fase
+            if (statusEnum == PhaseStatus.Completed)
+            {
+                var pendingMandatoryArtifacts = await _context.Artifacts
+                    .Where(a => a.ProjectPhaseId == phaseId && a.IsMandatory && a.Status != ArtifactStatus.Approved)
+                    .AnyAsync();
+
+                if (pendingMandatoryArtifacts)
+                {
+                    return Result<bool>.Fail("No se puede completar la fase porque existen artefactos obligatorios que no han sido aprobados.");
+                }
+            }
+
+            phase.Status = statusEnum;
+            await _context.SaveChangesAsync();
+            return Result<bool>.Ok(true);
+        }
+
+        return Result<bool>.Fail("Estado de fase inválido");
+    }
+
     private static ProjectDto MapToDto(Project project)
     {
         return new ProjectDto
