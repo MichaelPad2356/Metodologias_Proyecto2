@@ -45,6 +45,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Status).HasConversion<string>();
         });
 
+
         // Configure Iteration relationship
         modelBuilder.Entity<Iteration>()
             .HasOne(i => i.Project)
