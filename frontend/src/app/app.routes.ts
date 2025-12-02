@@ -9,6 +9,7 @@ import { MicroincrementCreateComponent } from './components/microincrement-creat
 import { TransitionArtifactsComponent } from './components/transition-artifacts/transition-artifacts.component';
 import { DefectListComponent } from './components/defect-list/defect-list.component';
 import { DefectCreateComponent } from './components/defect-create/defect-create.component';
+import { WorkflowsComponent } from './components/workflows/workflows.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -22,5 +23,6 @@ export const routes: Routes = [
   { path: 'microincrements/new', component: MicroincrementCreateComponent },
   { path: 'defects', component: DefectListComponent },
   { path: 'defects/new', component: DefectCreateComponent },
+  { path: 'workflows', component: WorkflowsComponent },
   { path: '**', redirectTo: '/' }
 ];
