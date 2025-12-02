@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../services/project.service';
 import { ProjectListItem, PROJECT_STATUS_LABELS } from '../../models/project.model';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-project-list',
@@ -17,11 +18,18 @@ export class ProjectListComponent implements OnInit {
   loading = false;
   error: string | null = null;
   includeArchived = false;
+  canDelete: boolean = false;
 
-  constructor(private projectService: ProjectService) {}
+  constructor(
+    private projectService: ProjectService,
+    private permService: PermissionService
+  ) {}
 
   ngOnInit(): void {
     this.loadProjects();
+    this.permService.role$.subscribe(() => {
+      this.canDelete = this.permService.canDeleteProject();
+    });
   }
 
   loadProjects(): void {

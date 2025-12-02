@@ -5,6 +5,7 @@
     <div class="artifacts-header">
       <h6 class="artifacts-title">Artefactos</h6>
       <button 
+        *ngIf="canCreate"
         class="btn btn-outline-primary btn-sm add-btn" 
         type="button" 
         data-bs-toggle="collapse" 
@@ -25,8 +26,48 @@
         <span class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
           {{ artifact.statusName }}
         </span>
+        <small *ngIf="artifact.assignedTo" class="text-muted ms-2">
+          <i class="fas fa-user"></i> {{ artifact.assignedTo }}
+        </small>
+        <a *ngIf="artifact.versions[0]?.repositoryUrl" [href]="artifact.versions[0].repositoryUrl" target="_blank" class="ms-2 text-decoration-none">
+          <i class="fab fa-github"></i> Repo
+        </a>
+      </div>
+      <div class="artifact-actions mt-1">
+        <button *ngIf="artifact.statusName === 'Pending' && canReview" class="btn btn-xs btn-outline-info me-1" (click)="updateArtifactStatus(artifact, 'InReview')">
+          Revisar
+        </button>
+        <button *ngIf="artifact.statusName === 'InReview' && canApprove" class="btn btn-xs btn-outline-success me-1" (click)="updateArtifactStatus(artifact, 'Approved')">
+          Aprobar
+        </button>
+        <button *ngIf="canCreate" class="btn btn-xs btn-outline-secondary" (click)="openVersionForm(artifact.id)">
+          + Versión
+        </button>
       </div>
       <small class="text-muted">{{ artifact.isMandatory ? 'Obligatorio' : 'Opcional' }}</small>
+      
+      <!-- Formulario de Nueva Versión (Inline) -->
+      <div *ngIf="selectedArtifactIdForVersion === artifact.id" class="mt-2 p-2 border rounded bg-light">
+        <h6>Nueva Versión</h6>
+        <form [formGroup]="versionForm" (ngSubmit)="onSubmitVersion()">
+          <div class="mb-2">
+            <input type="text" class="form-control form-control-sm" placeholder="Autor *" formControlName="author">
+          </div>
+          <div class="mb-2">
+            <textarea class="form-control form-control-sm" placeholder="Descripción de cambios" formControlName="content"></textarea>
+          </div>
+          <div class="mb-2">
+            <input type="url" class="form-control form-control-sm" placeholder="URL Repositorio" formControlName="repositoryUrl">
+          </div>
+          <div class="mb-2">
+            <input type="file" class="form-control form-control-sm" (change)="onVersionFileSelected($event)">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-sm btn-primary" [disabled]="versionForm.invalid">Subir</button>
+            <button type="button" class="btn btn-sm btn-secondary" (click)="cancelVersionForm()">Cancelar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -51,10 +92,18 @@
             <label for="author" class="form-label">Autor</label>
             <input type="text" id="author" class="form-control form-control-sm" formControlName="author">
           </div>
+          <div class="col-12 mb-3">
+            <label for="assignedTo" class="form-label">Asignado A (Responsable)</label>
+            <input type="text" id="assignedTo" class="form-control form-control-sm" formControlName="assignedTo">
+          </div>
         </div>
         <div class="mb-3">
           <label for="content" class="form-label">Contenido (Opcional)</label>
           <textarea id="content" class="form-control form-control-sm" rows="2" formControlName="content"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="repositoryUrl" class="form-label">URL del Repositorio (Opcional)</label>
+          <input type="url" id="repositoryUrl" class="form-control form-control-sm" formControlName="repositoryUrl" placeholder="https://github.com/...">
         </div>
         <div class="mb-3">
           <label for="fileInput" class="form-label">Archivo (Opcional)</label>

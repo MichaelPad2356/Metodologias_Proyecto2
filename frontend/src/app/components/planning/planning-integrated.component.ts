@@ -187,8 +187,18 @@ export class PlanningIntegratedComponent implements OnInit {
     // Recalcular progreso de la iteración
     this.recalcularProgresoIteracion(iteracion);
     
-    alert('✅ Tarea guardada correctamente');
-    this.cerrarModalTarea();
+    // Guardar cambios en el backend
+    this.planningService.actualizarIteracion(iteracion.id, iteracion).subscribe({
+      next: () => {
+        alert('✅ Tarea guardada correctamente');
+        this.cerrarModalTarea();
+      },
+      error: (err) => {
+        alert('❌ Error al guardar la tarea: ' + err.message);
+        // Revertir cambios locales si falla (opcional, pero recomendado)
+        this.cargarDatos(); 
+      }
+    });
   }
 
   eliminarTarea(iteracionId: number, tareaId: number) {
@@ -199,7 +209,17 @@ export class PlanningIntegratedComponent implements OnInit {
 
     iteracion.tareas = iteracion.tareas.filter(t => t.id !== tareaId);
     this.recalcularProgresoIteracion(iteracion);
-    alert('✅ Tarea eliminada');
+    
+    // Guardar cambios en el backend
+    this.planningService.actualizarIteracion(iteracion.id, iteracion).subscribe({
+      next: () => {
+        alert('✅ Tarea eliminada');
+      },
+      error: (err) => {
+        alert('❌ Error al eliminar la tarea: ' + err.message);
+        this.cargarDatos();
+      }
+    });
   }
 
   recalcularProgresoIteracion(iteracion: Iteracion) {

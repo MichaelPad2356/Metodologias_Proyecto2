@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DefectService } from '../../services/defect.service';
 import { Defect } from '../../models/defect.model';
 import { RouterModule } from '@angular/router';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-defect-list',
@@ -15,7 +16,7 @@ import { RouterModule } from '@angular/router';
           <h1 class="page-title">Control de Calidad</h1>
           <p class="page-subtitle">Gestión y seguimiento de defectos del proyecto</p>
         </div>
-        <a routerLink="/defects/new" class="btn-primary">
+        <a *ngIf="canCreate" routerLink="/defects/new" class="btn-primary">
           <span class="icon">+</span> Reportar Defecto
         </a>
       </div>
@@ -142,10 +143,21 @@ import { RouterModule } from '@angular/router';
 })
 export class DefectListComponent implements OnInit {
   defects: Defect[] = [];
+  canCreate: boolean = false;
 
-  constructor(private defectService: DefectService) {}
+  constructor(
+    private defectService: DefectService,
+    private permService: PermissionService
+  ) {}
 
   ngOnInit() {
+    this.loadDefects();
+    this.permService.role$.subscribe(() => {
+      this.canCreate = this.permService.canCreateDefect();
+    });
+  }
+
+  loadDefects() {
     this.defectService.getDefects().subscribe({
       next: (data) => this.defects = data,
       error: (err) => console.error('Error al cargar defectos:', err)

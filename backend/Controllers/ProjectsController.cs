@@ -89,6 +89,20 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Actualiza el estado de una fase
+    /// </summary>
+    [HttpPut("phases/{phaseId}/status")]
+    public async Task<IActionResult> UpdatePhaseStatus(int phaseId, [FromBody] string status)
+    {
+        var result = await _projectService.UpdatePhaseStatusAsync(phaseId, status);
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+        return Ok(new { message = "Estado de fase actualizado" });
+    }
+
+    /// <summary>
     /// Crea un nuevo proyecto OpenUP con las 4 fases predeterminadas
     /// </summary>
     [HttpPost]

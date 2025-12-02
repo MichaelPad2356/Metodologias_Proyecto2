@@ -9,6 +9,7 @@ public class ArtifactVersionDto
     public string Author { get; set; } = string.Empty;
     public string? Content { get; set; }
     public string? OriginalFileName { get; set; }
+    public string? RepositoryUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? DownloadUrl { get; set; }
 }
@@ -22,6 +23,7 @@ public class ArtifactDto
     public bool IsMandatory { get; set; }
     public ArtifactStatus Status { get; set; }
     public string StatusName => Status.ToString();
+    public string? AssignedTo { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<ArtifactVersionDto> Versions { get; set; } = new();
 }

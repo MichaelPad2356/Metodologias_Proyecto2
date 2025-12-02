@@ -24,5 +24,8 @@ public class ArtifactVersion
     public string? OriginalFileName { get; set; }
     public string? ContentType { get; set; }
 
+    // HU-008: Enlace a repositorio externo
+    public string? RepositoryUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

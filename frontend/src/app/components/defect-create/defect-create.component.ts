@@ -1,10 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { DefectService } from '../../services/defect.service';
+import { ProjectService } from '../../services/project.service';
+import { ArtifactService } from '../../services/artifactService';
 import { Defect, DefectSeverity, DefectStatus } from '../../models/defect.model';
 import { PermissionService } from '../../services/permission.service';
+import { ProjectListItem } from '../../models/project.model';
+import { Artifact, ArtifactType } from '../../models/artifact.model';
 
 @Component({
   selector: 'app-defect-create',
@@ -24,6 +28,14 @@ import { PermissionService } from '../../services/permission.service';
 
         <form *ngIf="canCreate" (ngSubmit)="onSubmit()" #defectForm="ngForm">
           
+          <div class="form-group">
+            <label>Proyecto</label>
+            <select [(ngModel)]="defect.projectId" name="projectId" class="form-select" (change)="onProjectChange()" required>
+              <option [ngValue]="0" disabled>Seleccione un proyecto...</option>
+              <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label>Título del Defecto</label>
             <input type="text" [(ngModel)]="defect.title" name="title" required 
@@ -52,6 +64,17 @@ import { PermissionService } from '../../services/permission.service';
               <input type="text" [(ngModel)]="defect.assignedTo" name="assigned" 
                      placeholder="Nombre del desarrollador" class="form-input">
             </div>
+          </div>
+
+          <div class="form-group">
+            <label>Artefacto Relacionado (Opcional)</label>
+            <select [(ngModel)]="defect.artifactId" name="artifactId" class="form-select" [disabled]="!defect.projectId">
+              <option [ngValue]="null">-- Ninguno --</option>
+              <option *ngFor="let a of artifacts" [ngValue]="a.id">
+                {{ getArtifactTypeName(a.type) }} (ID: {{ a.id }}) - {{ a.statusName }}
+              </option>
+            </select>
+            <small *ngIf="!defect.projectId" class="text-muted">Seleccione un proyecto primero</small>
           </div>
 
           <div class="form-actions">
@@ -112,28 +135,68 @@ import { PermissionService } from '../../services/permission.service';
     }
   `]
 })
-export class DefectCreateComponent {
+export class DefectCreateComponent implements OnInit {
   defect: Defect = {
     title: '',
     description: '',
     severity: DefectSeverity.Medium,
     status: DefectStatus.New,
-    projectId: 1, 
+    projectId: 0, 
     reportedBy: 'Tester'
   };
 
+  projects: ProjectListItem[] = [];
+  artifacts: Artifact[] = [];
   canCreate: boolean = false;
   isSubmitting: boolean = false;
 
   constructor(
     private defectService: DefectService, 
+    private projectService: ProjectService,
+    private artifactService: ArtifactService,
     private router: Router,
     private permService: PermissionService
-  ) {
-    this.canCreate = this.permService.canCreateDefect();
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProjects();
+    // Suscribirse a cambios de rol para actualizar permisos en tiempo real
+    this.permService.role$.subscribe(() => {
+      this.canCreate = this.permService.canCreateDefect();
+    });
+  }
+
+  loadProjects() {
+    this.projectService.getAllProjects().subscribe(data => {
+      this.projects = data;
+      // Si solo hay un proyecto, seleccionarlo por defecto
+      if (this.projects.length === 1) {
+        this.defect.projectId = this.projects[0].id;
+        this.onProjectChange();
+      }
+    });
+  }
+
+  onProjectChange() {
+    if (this.defect.projectId) {
+      this.artifactService.getArtifactsByProject(this.defect.projectId).subscribe(data => {
+        this.artifacts = data;
+      });
+    } else {
+      this.artifacts = [];
+    }
+  }
+
+  getArtifactTypeName(type: any): string {
+    return ArtifactType[type] || type;
   }
 
   onSubmit() {
+    if (!this.defect.projectId) {
+      alert('Seleccione un proyecto');
+      return;
+    }
+    
     console.log('Intentando enviar defecto:', this.defect);
     this.isSubmitting = true;
     

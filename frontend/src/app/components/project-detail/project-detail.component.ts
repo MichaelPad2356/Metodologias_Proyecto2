@@ -6,6 +6,7 @@ import { ProjectService } from '../../services/project.service';
 import { Project, PROJECT_STATUS_LABELS, PHASE_STATUS_LABELS, ProjectPlanVersion } from '../../models/project.model';
 import { ProjectProgressComponent } from '../project-progress/project-progress.component';
 import { ArtifactsManagerComponent } from '../artifacts-manager/artifacts-manager.component';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -18,6 +19,7 @@ export class ProjectDetailComponent implements OnInit {
   project: Project | null = null;
   loading = true;
   error: string | null = null;
+  canDelete: boolean = false;
 
   // Cache para datos parseados del plan (evita ExpressionChangedAfterItHasBeenCheckedError)
   private _cronogramaCache: Array<{ date: string; description: string }> | null = null;
@@ -35,7 +37,8 @@ export class ProjectDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private permService: PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +47,9 @@ export class ProjectDetailComponent implements OnInit {
       if (id) {
         this.loadProject(id);
       }
+    });
+    this.permService.role$.subscribe(() => {
+      this.canDelete = this.permService.canDeleteProject();
     });
   }
 
@@ -318,5 +324,21 @@ export class ProjectDetailComponent implements OnInit {
 
   closeVersionDetail(): void {
     this.selectedVersion = null;
+  }
+
+  updatePhaseStatus(phase: any, newStatus: string): void {
+    if (!confirm(`¿Estás seguro de cambiar el estado de la fase a ${this.getPhaseStatusLabel(newStatus)}?`)) {
+      return;
+    }
+
+    this.projectService.updatePhaseStatus(phase.id, newStatus).subscribe({
+      next: () => {
+        phase.status = newStatus;
+      },
+      error: (err) => {
+        console.error('Error actualizando fase:', err);
+        alert('Error al actualizar el estado de la fase');
+      }
+    });
   }
 }

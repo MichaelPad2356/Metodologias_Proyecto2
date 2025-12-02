@@ -1,16 +1,31 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+export type UserRole = 'Admin' | 'ProjectManager' | 'Developer' | 'Tester' | 'Stakeholder';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PermissionService {
-  // SIMULACIÓN: Cambia esto para probar diferentes roles ('Admin', 'Tester', 'Developer')
-  currentUserRole: string = 'Tester'; 
+  private roleSubject = new BehaviorSubject<UserRole>('Admin');
+  public role$ = this.roleSubject.asObservable();
 
   constructor() { }
 
+  setRole(role: UserRole) {
+    this.roleSubject.next(role);
+  }
+
+  get currentUserRole(): UserRole {
+    return this.roleSubject.value;
+  }
+
   canCreateArtifact(): boolean {
-    return ['Admin', 'Developer'].includes(this.currentUserRole);
+    return ['Admin', 'Developer', 'ProjectManager'].includes(this.currentUserRole);
+  }
+
+  canReviewArtifact(): boolean {
+    return ['Admin', 'Developer', 'ProjectManager'].includes(this.currentUserRole);
   }
 
   canApproveArtifact(): boolean {
@@ -20,12 +35,16 @@ export class PermissionService {
   canCreateDefect(): boolean {
     return ['Admin', 'Tester'].includes(this.currentUserRole);
   }
+
+  canDeleteProject(): boolean {
+    return ['Admin'].includes(this.currentUserRole);
+  }
   
   // HU-013: Matriz de permisos
   canEditStatus(currentStatus: string): boolean {
     if (this.currentUserRole === 'Admin') return true;
-    if (this.currentUserRole === 'Developer' && currentStatus === 'Pending') return true;
-    if (this.currentUserRole === 'Tester' && currentStatus === 'InReview') return true;
+    if (this.currentUserRole === 'Developer' && currentStatus === 'Pending') return true; // Dev can start review? Maybe not.
+    // Let's stick to specific actions
     return false;
   }
 }

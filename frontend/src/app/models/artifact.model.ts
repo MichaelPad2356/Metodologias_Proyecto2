@@ -5,11 +5,38 @@ export enum ArtifactStatus {
 }
 
 export enum ArtifactType {
+  // Inception
   VisionDocument,
   StakeholderList,
   InitialRiskList,
   InitialProjectPlan,
   HighLevelUseCaseModel,
+  
+  // Elaboration
+  DetailedUseCaseModel,
+  DomainModel,
+  SupplRequirements,
+  NonFunctionalReqs,
+  ArchitectureDoc,
+  TechnicalDiagrams,
+  IterationPlan,
+  UIPrototype,
+
+  // Construction
+  DetailedDesignModel,
+  SourceCode,
+  TestCases,
+  TestResults,
+  IterationLog,
+
+  // Transition
+  UserManual,
+  TechnicalManual,
+  DeploymentPlan,
+  ClosureDoc,
+  FinalBuild,
+  BetaTestReport,
+
   Other,
 }
 
@@ -19,6 +46,7 @@ export interface ArtifactVersion {
   author: string;
   content?: string;
   originalFileName?: string;
+  repositoryUrl?: string;
   createdAt: Date;
   downloadUrl?: string;
 }
@@ -31,6 +59,7 @@ export interface Artifact {
   isMandatory: boolean;
   status: ArtifactStatus;
   statusName: string;
+  assignedTo?: string;
   createdAt: Date;
   versions: ArtifactVersion[];
 }

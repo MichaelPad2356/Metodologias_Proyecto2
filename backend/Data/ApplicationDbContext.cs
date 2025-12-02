@@ -21,10 +21,19 @@ public class ApplicationDbContext : DbContext
     public DbSet<Iteration> Iterations { get; set; }
     public DbSet<IterationTask> IterationTasks { get; set; }
     public DbSet<Iteracion> Iteraciones { get; set; }
+    public DbSet<Defect> Defects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Defect configuration
+        modelBuilder.Entity<Defect>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Severity).HasDefaultValue("Low");
+            entity.Property(e => e.Status).HasDefaultValue("New");
+        });
 
         // Project configuration
         modelBuilder.Entity<Project>(entity =>
