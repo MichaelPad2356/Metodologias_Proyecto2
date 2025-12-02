@@ -31,7 +31,7 @@
         <small *ngIf="artifact.assignedTo" class="text-muted ms-2">
           <i class="fas fa-user"></i> {{ artifact.assignedTo }}
         </small>
-        <a *ngIf="artifact.versions[0]?.repositoryUrl" [href]="artifact.versions[0].repositoryUrl" target="_blank" class="ms-2 text-decoration-none">
+        <a *ngIf="artifact.versions && artifact.versions[0]?.repositoryUrl" [href]="artifact.versions[0]!.repositoryUrl" target="_blank" class="ms-2 text-decoration-none">
           <i class="fab fa-github"></i> Repo
         </a>
       </div>

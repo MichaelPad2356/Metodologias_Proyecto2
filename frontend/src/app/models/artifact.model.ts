@@ -37,6 +37,13 @@ export enum ArtifactType {
   FinalBuild,
   BetaTestReport,
 
+  // Missing types
+  SoftwareArchitectureDocument,
+  RefinedRiskList,
+  UnitTestReport,
+  IntegrationTestReport,
+  UserGuide,
+
   Other,
 }
 
@@ -58,7 +65,7 @@ export const ArtifactTypeLabels: { [key: number]: string } = {
   [ArtifactType.UserManual]: 'Manual de Usuario',
   [ArtifactType.TechnicalManual]: 'Manual Técnico',
   [ArtifactType.DeploymentPlan]: 'Plan de Despliegue',
-  [ArtifactType.ClosureDocument]: 'Documento de Cierre',
+  [ArtifactType.ClosureDoc]: 'Documento de Cierre',
   [ArtifactType.FinalBuild]: 'Build Final',
   [ArtifactType.BetaTestReport]: 'Reporte de Pruebas Beta',
   [ArtifactType.Other]: 'Otro',
@@ -83,7 +90,7 @@ export const MandatoryArtifactsByPhase: { [phase: string]: ArtifactType[] } = {
     ArtifactType.UserManual,
     ArtifactType.TechnicalManual,
     ArtifactType.DeploymentPlan,
-    ArtifactType.ClosureDocument,
+    ArtifactType.ClosureDoc,
     ArtifactType.FinalBuild,
     ArtifactType.BetaTestReport,
   ],
@@ -124,6 +131,7 @@ export interface ArtifactVersion {
   repositoryUrl?: string;
   createdAt: Date;
   downloadUrl?: string;
+  fileSize?: number;
 }
 
 // HU-010: Interface para comparación de versiones

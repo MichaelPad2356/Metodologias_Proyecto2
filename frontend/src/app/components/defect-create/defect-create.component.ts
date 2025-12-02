@@ -15,54 +15,15 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="page-container">
-      <div class="form-card">
-        <div class="form-header">
-          <h2>Nuevo Reporte de Defecto</h2>
-          <p>Detalla el incidente encontrado para su seguimiento.</p>
-        </div>
-
-        <div *ngIf="!canCreate" class="alert-error">
-          🔒 No tienes permisos para crear defectos. Contacta al administrador.
-        </div>
-
-        <form *ngIf="canCreate" (ngSubmit)="onSubmit()" #defectForm="ngForm">
-          
-          <div class="form-group">
-            <label>Proyecto</label>
-            <select [(ngModel)]="defect.projectId" name="projectId" class="form-select" (change)="onProjectChange()" required>
-              <option [ngValue]="0" disabled>Seleccione un proyecto...</option>
-              <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Título del Defecto</label>
-            <input type="text" [(ngModel)]="defect.title" name="title" required 
-                   placeholder="Ej: Error al guardar usuario nuevo" class="form-input">
-          </div>
-          
-          <div class="form-group">
-            <label>Descripción y Pasos para Reproducir</label>
-            <textarea [(ngModel)]="defect.description" name="desc" rows="5" 
-                      placeholder="1. Ingresar al módulo..." class="form-input"></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Severidad</label>
-              <select [(ngModel)]="defect.severity" name="severity" class="form-select">
-                <option value="Low">🟢 Baja (Cosmético)</option>
-                <option value="Medium">🟡 Media (Funcionalidad parcial)</option>
-                <option value="High">🟠 Alta (Funcionalidad crítica)</option>
-                <option value="Critical">🔴 Crítica (Bloqueante)</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label>Asignar a (Simulado)</label>
-              <input type="text" [(ngModel)]="defect.assignedTo" name="assigned" 
-                     placeholder="Nombre del desarrollador" class="form-input">
+    <div class="defects-container">
+      <!-- Header -->
+      <div class="defects-header">
+        <div class="header-content">
+          <div class="title-section">
+            <span class="icon">🐞</span>
+            <div>
+              <h1>Nuevo Reporte de Defecto</h1>
+              <p class="subtitle">Detalla el incidente encontrado para su seguimiento</p>
             </div>
           </div>
           <a routerLink="/defects" class="btn-back">
@@ -71,22 +32,139 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
         </div>
       </div>
 
-          <div class="form-group">
-            <label>Artefacto Relacionado (Opcional)</label>
-            <select [(ngModel)]="defect.artifactId" name="artifactId" class="form-select" [disabled]="!defect.projectId">
-              <option [ngValue]="null">-- Ninguno --</option>
-              <option *ngFor="let a of artifacts" [ngValue]="a.id">
-                {{ getArtifactTypeName(a.type) }} (ID: {{ a.id }}) - {{ a.statusName }}
-              </option>
-            </select>
-            <small *ngIf="!defect.projectId" class="text-muted">Seleccione un proyecto primero</small>
-          </div>
+      <!-- Contenido del formulario -->
+      <div class="form-content">
+        <div class="card">
+          <div class="card-body">
+            <!-- Alerta de permisos -->
+            <div *ngIf="!canCreate" class="alert-error">
+              <span class="alert-icon">🔒</span>
+              <div class="alert-content">
+                <strong>Acceso Restringido</strong>
+                <p>No tienes permisos para crear defectos. Contacta al administrador.</p>
+              </div>
+            </div>
 
-          <div class="form-actions">
-            <a routerLink="/defects" class="btn-secondary">Cancelar</a>
-            <button type="submit" [disabled]="!defectForm.form.valid || isSubmitting" class="btn-primary">
-              {{ isSubmitting ? 'Guardando...' : 'Registrar Defecto' }}
-            </button>
+            <!-- Formulario -->
+            <form *ngIf="canCreate" (ngSubmit)="onSubmit()" #defectForm="ngForm">
+              
+              <!-- Sección: Información del Proyecto -->
+              <div class="form-section">
+                <h3 class="section-title">
+                  <span class="section-icon">📁</span>
+                  Información del Proyecto
+                </h3>
+                
+                <div class="form-group">
+                  <label class="form-label">Proyecto *</label>
+                  <select [(ngModel)]="defect.projectId" name="projectId" class="form-select" (change)="onProjectChange()" required>
+                    <option [ngValue]="0" disabled>Seleccione un proyecto...</option>
+                    <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Artefacto Relacionado (Opcional)</label>
+                  <select [(ngModel)]="defect.artifactId" name="artifactId" class="form-select" [disabled]="!defect.projectId">
+                    <option [ngValue]="null">-- Ninguno --</option>
+                    <option *ngFor="let a of artifacts" [ngValue]="a.id">
+                      {{ getArtifactTypeName(a.type) }} (ID: {{ a.id }}) - {{ a.statusName }}
+                    </option>
+                  </select>
+                  <small *ngIf="!defect.projectId" class="form-hint">Seleccione un proyecto primero</small>
+                </div>
+              </div>
+
+              <!-- Sección: Detalles del Defecto -->
+              <div class="form-section">
+                <h3 class="section-title">
+                  <span class="section-icon">📝</span>
+                  Detalles del Defecto
+                </h3>
+                
+                <div class="form-group">
+                  <label class="form-label">Título del Defecto *</label>
+                  <input type="text" [(ngModel)]="defect.title" name="title" required 
+                         placeholder="Ej: Error al guardar usuario nuevo" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Descripción y Pasos para Reproducir</label>
+                  <textarea [(ngModel)]="defect.description" name="desc" rows="5" 
+                            placeholder="1. Ingresar al módulo...&#10;2. Hacer clic en...&#10;3. El error aparece cuando..." 
+                            class="form-control"></textarea>
+                </div>
+              </div>
+
+              <!-- Sección: Clasificación -->
+              <div class="form-section">
+                <h3 class="section-title">
+                  <span class="section-icon">🏷️</span>
+                  Clasificación y Asignación
+                </h3>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Severidad</label>
+                    <div class="severity-options">
+                      <label class="severity-option" [class.selected]="defect.severity === 'Low'">
+                        <input type="radio" [(ngModel)]="defect.severity" name="severity" value="Low">
+                        <span class="severity-badge low">
+                          <span class="severity-dot"></span>
+                          Baja
+                        </span>
+                        <span class="severity-desc">Cosmético</span>
+                      </label>
+                      <label class="severity-option" [class.selected]="defect.severity === 'Medium'">
+                        <input type="radio" [(ngModel)]="defect.severity" name="severity" value="Medium">
+                        <span class="severity-badge medium">
+                          <span class="severity-dot"></span>
+                          Media
+                        </span>
+                        <span class="severity-desc">Funcionalidad parcial</span>
+                      </label>
+                      <label class="severity-option" [class.selected]="defect.severity === 'High'">
+                        <input type="radio" [(ngModel)]="defect.severity" name="severity" value="High">
+                        <span class="severity-badge high">
+                          <span class="severity-dot"></span>
+                          Alta
+                        </span>
+                        <span class="severity-desc">Funcionalidad crítica</span>
+                      </label>
+                      <label class="severity-option" [class.selected]="defect.severity === 'Critical'">
+                        <input type="radio" [(ngModel)]="defect.severity" name="severity" value="Critical">
+                        <span class="severity-badge critical">
+                          <span class="severity-dot"></span>
+                          Crítica
+                        </span>
+                        <span class="severity-desc">Bloqueante</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="form-label">Asignar a</label>
+                    <div class="input-with-icon">
+                      <span class="input-icon">👤</span>
+                      <input type="text" [(ngModel)]="defect.assignedTo" name="assigned" 
+                             placeholder="Nombre del desarrollador" class="form-control with-icon">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones del formulario -->
+              <div class="form-actions">
+                <a routerLink="/defects" class="btn-cancel">
+                  Cancelar
+                </a>
+                <button type="submit" [disabled]="!defectForm.form.valid || isSubmitting" class="btn-submit">
+                  <span *ngIf="isSubmitting" class="spinner"></span>
+                  <span *ngIf="!isSubmitting" class="btn-icon">🐞</span>
+                  {{ isSubmitting ? 'Guardando...' : 'Registrar Defecto' }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -97,6 +175,8 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
       min-height: 100vh;
       background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
     }
+    
+    /* Header */
     .defects-header {
       background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
       padding: 2rem;
@@ -130,15 +210,18 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
     .btn-back {
       color: white;
       text-decoration: none;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.25rem;
       border-radius: 8px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.15);
       transition: all 0.2s ease;
+      font-weight: 500;
     }
     .btn-back:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.25);
       color: white;
     }
+
+    /* Form Content */
     .form-content {
       max-width: 900px;
       margin: -2rem auto 2rem auto;
@@ -154,17 +237,55 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
     .card-body {
       padding: 2rem;
     }
+
+    /* Alert */
+    .alert-error {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .alert-icon {
+      font-size: 1.5rem;
+    }
+    .alert-content strong {
+      color: #dc2626;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .alert-content p {
+      color: #7f1d1d;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    /* Form Sections */
     .form-section {
       margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .form-section:last-of-type {
+      border-bottom: none;
     }
     .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 1.1rem;
       font-weight: 600;
       color: #1e3a5f;
       margin-bottom: 1.25rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 2px solid #e5e7eb;
     }
+    .section-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Form Groups */
     .form-group {
       margin-bottom: 1.25rem;
     }
@@ -196,17 +317,137 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
     }
     .form-control:focus, .form-select:focus {
       outline: none;
-      border-color: #10b981;
+      border-color: #3b82f6;
       background-color: white;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
     }
     .form-control::placeholder {
       color: #9ca3af;
     }
+    .form-control:disabled, .form-select:disabled {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+    }
     textarea.form-control {
       resize: vertical;
       min-height: 120px;
+      line-height: 1.5;
     }
+    .form-hint {
+      display: block;
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 0.35rem;
+    }
+
+    /* Input with icon */
+    .input-with-icon {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+    }
+    .form-control.with-icon {
+      padding-left: 2.75rem;
+    }
+
+    /* Severity Options */
+    .severity-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 500px) {
+      .severity-options {
+        grid-template-columns: 1fr;
+      }
+    }
+    .severity-option {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.85rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fafafa;
+    }
+    .severity-option:hover {
+      border-color: #d1d5db;
+      background: white;
+    }
+    .severity-option.selected {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .severity-option input {
+      display: none;
+    }
+    .severity-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .severity-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .severity-desc {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    
+    /* Severity Colors */
+    .severity-option.selected:has(input[value="Low"]) {
+      border-color: #10b981;
+    }
+    .severity-badge.low .severity-dot {
+      background: #10b981;
+    }
+    .severity-badge.low {
+      color: #059669;
+    }
+    
+    .severity-option.selected:has(input[value="Medium"]) {
+      border-color: #f59e0b;
+    }
+    .severity-badge.medium .severity-dot {
+      background: #f59e0b;
+    }
+    .severity-badge.medium {
+      color: #d97706;
+    }
+    
+    .severity-option.selected:has(input[value="High"]) {
+      border-color: #f97316;
+    }
+    .severity-badge.high .severity-dot {
+      background: #f97316;
+    }
+    .severity-badge.high {
+      color: #ea580c;
+    }
+    
+    .severity-option.selected:has(input[value="Critical"]) {
+      border-color: #ef4444;
+    }
+    .severity-badge.critical .severity-dot {
+      background: #ef4444;
+    }
+    .severity-badge.critical {
+      color: #dc2626;
+    }
+
+    /* Form Actions */
     .form-actions {
       display: flex;
       justify-content: flex-end;
@@ -223,6 +464,8 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
       background-color: #f3f4f6;
       color: #4b5563;
       transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
     }
     .btn-cancel:hover {
       background-color: #e5e7eb;
@@ -240,14 +483,20 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     }
     .btn-submit:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     }
     .btn-submit:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-icon {
+      font-size: 1.1rem;
     }
     .spinner {
       width: 18px;
@@ -264,6 +513,8 @@ import { Artifact, ArtifactType } from '../../models/artifact.model';
 })
 export class DefectCreateComponent implements OnInit {
   defect: Defect = {
+    id: 0,
+    createdAt: new Date(),
     title: '',
     description: '',
     severity: DefectSeverity.Medium,
@@ -334,7 +585,7 @@ export class DefectCreateComponent implements OnInit {
       error: (err: any) => {
         console.error('Error creating defect:', err);
         alert('Error al crear el defecto');
-        this.submitting = false;
+        this.isSubmitting = false;
       }
     });
   }

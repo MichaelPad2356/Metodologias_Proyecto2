@@ -34,7 +34,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
     { type: ArtifactType.UserManual, label: 'Manual de Usuario', icon: '📖' },
     { type: ArtifactType.TechnicalManual, label: 'Manual Técnico', icon: '🔧' },
     { type: ArtifactType.DeploymentPlan, label: 'Plan de Despliegue', icon: '🚀' },
-    { type: ArtifactType.ClosureDocument, label: 'Documento de Cierre', icon: '✅' },
+    { type: ArtifactType.ClosureDoc, label: 'Documento de Cierre', icon: '✅' },
     { type: ArtifactType.FinalBuild, label: 'Build Final', icon: '📦' },
     { type: ArtifactType.BetaTestReport, label: 'Reporte de Pruebas Beta', icon: '🧪' },
   ];
@@ -122,7 +122,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         console.log('Artifacts received:', this.artifacts.map(a => ({ id: a.id, type: a.type, typeOf: typeof a.type })));
         console.log('TransitionTypes:', this.transitionTypes.map(t => ({ type: t.type, typeOf: typeof t.type })));
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'Error al cargar los artefactos de transición';
         console.error('Error:', err);
         this.loading = false;
@@ -152,7 +152,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         'UserManual': 'Manual de Usuario',
         'TechnicalManual': 'Manual Técnico',
         'DeploymentPlan': 'Plan de Despliegue',
-        'ClosureDocument': 'Documento de Cierre',
+        'ClosureDoc': 'Documento de Cierre',
         'FinalBuild': 'Build Final',
         'BetaTestReport': 'Reporte de Pruebas Beta'
       };
@@ -173,7 +173,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
   // Verificar si el documento de cierre tiene checklist completo
   hasClosureChecklist(): boolean {
     const closureDoc = this.artifacts.find(a => 
-      a.type === 'ClosureDocument' || a.type === ArtifactType.ClosureDocument
+      a.type === 'ClosureDoc' || a.type === ArtifactType.ClosureDoc
     );
     
     if (!closureDoc || !closureDoc.closureChecklistJson) {
@@ -231,7 +231,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
     this.resetArtifactForm();
     
     // Si es documento de cierre, inicializar checklist
-    if (type === ArtifactType.ClosureDocument) {
+    if (type === ArtifactType.ClosureDoc) {
       this.closureChecklist = JSON.parse(JSON.stringify(DefaultClosureChecklist));
     }
     
@@ -304,7 +304,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
     }
 
     // Campos para Documento de Cierre
-    if (this.selectedArtifactType === ArtifactType.ClosureDocument) {
+    if (this.selectedArtifactType === ArtifactType.ClosureDoc) {
       formData.append('closureChecklistJson', JSON.stringify(this.closureChecklist));
     }
 
@@ -314,7 +314,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         this.loadTransitionArtifacts();
         alert('✅ Artefacto creado correctamente');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al crear artefacto:', err);
         alert('❌ Error al crear el artefacto');
       }
@@ -365,7 +365,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         this.loadTransitionArtifacts();
         alert('✅ Checklist actualizado correctamente');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al guardar checklist:', err);
         alert('❌ Error al guardar el checklist');
       }
@@ -385,7 +385,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         this.loadTransitionArtifacts();
         alert('✅ Información del Build actualizada');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al guardar Build:', err);
         alert('❌ Error al guardar la información del Build');
       }
@@ -407,7 +407,7 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
         this.loadTransitionArtifacts();
         alert('✅ Estado actualizado');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al cambiar estado:', err);
         alert('❌ Error al cambiar el estado');
       }
@@ -417,11 +417,11 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
   // Validar cierre del proyecto
   validateClosure(): void {
     this.artifactService.validateProjectClosure(this.projectId).subscribe({
-      next: (validation) => {
+      next: (validation: ClosureValidationResponse) => {
         this.closureValidation = validation;
         this.showValidationModal = true;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al validar cierre:', err);
         alert('❌ Error al validar el cierre del proyecto');
       }

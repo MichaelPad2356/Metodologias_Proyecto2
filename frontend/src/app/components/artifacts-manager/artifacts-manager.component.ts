@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Artifact, ArtifactType } from '../../models/artifact.model';
@@ -21,8 +21,8 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
   @Input() phaseId!: number;
 
   artifacts: Artifact[] = [];
-  artifactForm: FormGroup;
-  versionForm: FormGroup;
+  artifactForm!: FormGroup;
+  versionForm!: FormGroup;
   selectedFile: File | null = null;
   selectedVersionFile: File | null = null;
   selectedArtifactIdForVersion: number | null = null;
@@ -40,7 +40,8 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
   constructor(
     private artifactService: ArtifactService,
     private fb: FormBuilder,
-    private permService: PermissionService
+    private permService: PermissionService,
+    private http: HttpClient
   ) {
     this.initForm();
   }

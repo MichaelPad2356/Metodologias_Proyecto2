@@ -29,11 +29,11 @@ export class PermissionService {
   }
 
   canApproveArtifact(): boolean {
-    return ['admin', 'manager'].includes(this.currentUserRole);
+    return ['Admin', 'ProjectManager'].includes(this.currentUserRole);
   }
 
   canCreateDefect(): boolean {
-    return ['admin', 'developer', 'tester', 'analyst'].includes(this.currentUserRole);
+    return ['Admin', 'Developer', 'Tester'].includes(this.currentUserRole);
   }
 
   canDeleteProject(): boolean {
@@ -41,30 +41,42 @@ export class PermissionService {
   }
   
   // HU-013: Matriz de permisos
-  canEditStatus(currentStatus: string): boolean {
-    if (this.currentUserRole === 'Admin') return true;
-    if (this.currentUserRole === 'Developer' && currentStatus === 'Pending') return true; // Dev can start review? Maybe not.
-    // Let's stick to specific actions
+  canEditStatus(currentStatus?: string): boolean {
+    const role = this.currentUserRole;
+    
+    // Si no se especifica estado, verificamos si el rol tiene permiso general de editar estados
+    if (!currentStatus) {
+        return ['Admin', 'ProjectManager', 'Developer'].includes(role);
+    }
+
+    // Admin puede hacer todo
+    if (role === 'Admin') return true;
+
+    // ProjectManager puede aprobar/rechazar
+    if (role === 'ProjectManager') return true;
+
+    // Developer puede mover de Pending a InReview
+    if (role === 'Developer') {
+        if (currentStatus === 'Pending') return true;
+        if (currentStatus === 'InReview') return false; 
+    }
+
     return false;
   }
 
-  canEditStatus(): boolean {
-    return ['admin', 'manager', 'developer'].includes(this.currentUserRole);
-  }
-
   canDeleteDefect(): boolean {
-    return ['admin'].includes(this.currentUserRole);
+    return ['Admin'].includes(this.currentUserRole);
   }
 
   canExportHistory(): boolean {
-    return ['admin', 'manager', 'analyst'].includes(this.currentUserRole);
+    return ['Admin', 'ProjectManager'].includes(this.currentUserRole);
   }
 
   getCurrentUserRole(): string {
     return this.currentUserRole;
   }
 
-  setCurrentUserRole(role: string): void {
-    this.currentUserRole = role;
+  setCurrentUserRole(role: UserRole): void {
+    this.setRole(role);
   }
 }

@@ -67,4 +67,40 @@ export class ArtifactService {
       headers: { 'Content-Type': 'application/json' }
     });
   }
+
+  updateStatus(artifactId: number, status: number): Observable<any> {
+    // Convert number status to string if backend expects string, or just send number
+    // Based on previous code, backend expects string enum name
+    const statusMap: { [key: number]: string } = {
+      0: 'Pending',
+      1: 'InReview',
+      2: 'Approved'
+    };
+    const statusString = statusMap[status] || 'Pending';
+    return this.updateArtifactStatus(artifactId, statusString);
+  }
+
+  getTransitionArtifacts(projectId: number): Observable<TransitionArtifactsResponse> {
+    return this.http.get<TransitionArtifactsResponse>(`${this.apiUrl}/transition/${projectId}`);
+  }
+
+  updateArtifact(id: number, dto: UpdateArtifactDto): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, dto);
+  }
+
+  validateProjectClosure(projectId: number): Observable<ClosureValidationResponse> {
+    return this.http.post<ClosureValidationResponse>(`${this.apiUrl}/validate-closure/${projectId}`, {});
+  }
+
+  compareVersions(artifactId: number, v1Id: number, v2Id: number): Observable<VersionComparison> {
+    return this.http.get<VersionComparison>(`${this.apiUrl}/${artifactId}/compare?v1=${v1Id}&v2=${v2Id}`);
+  }
+
+  exportVersionHistory(artifactId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${artifactId}/history/export`, { responseType: 'blob' });
+  }
+
+  downloadVersion(artifactId: number, versionNumber: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${artifactId}/versions/${versionNumber}/download`, { responseType: 'blob' });
+  }
 }

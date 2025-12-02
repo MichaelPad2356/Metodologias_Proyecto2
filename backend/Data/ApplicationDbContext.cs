@@ -22,6 +22,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<IterationTask> IterationTasks { get; set; }
     public DbSet<Iteracion> Iteraciones { get; set; }
     public DbSet<Defect> Defects { get; set; }
+    public DbSet<Workflow> Workflows { get; set; }
+    public DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +43,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Code).IsUnique();
             entity.Property(e => e.Status).HasConversion<string>();
+        });
 
         // Configure Iteration relationship
         modelBuilder.Entity<Iteration>()

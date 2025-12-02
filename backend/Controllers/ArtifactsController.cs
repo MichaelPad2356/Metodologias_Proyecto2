@@ -116,7 +116,35 @@ public class ArtifactsController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(artifacts.Select(a => MapToDto(a)));
+        return Ok(artifacts);
+    }
+
+    private ArtifactDto MapToDto(Artifact artifact)
+    {
+        return new ArtifactDto
+        {
+            Id = artifact.Id,
+            Type = artifact.Type,
+            ProjectPhaseId = artifact.ProjectPhaseId,
+            IsMandatory = artifact.IsMandatory,
+            Status = artifact.Status,
+            AssignedTo = artifact.AssignedTo,
+            CreatedAt = artifact.CreatedAt,
+            BuildIdentifier = artifact.BuildIdentifier,
+            BuildDownloadUrl = artifact.BuildDownloadUrl,
+            ClosureChecklistJson = artifact.ClosureChecklistJson,
+            Versions = artifact.Versions.OrderByDescending(v => v.VersionNumber).Select(v => new ArtifactVersionDto
+            {
+                Id = v.Id,
+                VersionNumber = v.VersionNumber,
+                Author = v.Author,
+                Content = v.Content,
+                OriginalFileName = v.OriginalFileName,
+                RepositoryUrl = v.RepositoryUrl,
+                CreatedAt = v.CreatedAt,
+                DownloadUrl = !string.IsNullOrEmpty(v.FilePath) ? $"/uploads/{Path.GetFileName(v.FilePath)}" : null
+            }).ToList()
+        };
     }
 
     // GET: api/artifacts/transition/2 - Get transition phase artifacts for a project
@@ -143,7 +171,7 @@ public class ArtifactsController : ControllerBase
             new(ArtifactType.UserManual, "Manual de Usuario"),
             new(ArtifactType.TechnicalManual, "Manual Técnico"),
             new(ArtifactType.DeploymentPlan, "Plan de Despliegue"),
-            new(ArtifactType.ClosureDocument, "Documento de Cierre"),
+            new(ArtifactType.ClosureDoc, "Documento de Cierre"),
             new(ArtifactType.FinalBuild, "Build Final")
         };
 
@@ -204,7 +232,7 @@ public class ArtifactsController : ControllerBase
             ArtifactType.UserManual, 
             ArtifactType.TechnicalManual, 
             ArtifactType.DeploymentPlan, 
-            ArtifactType.ClosureDocument, 
+            ArtifactType.ClosureDoc, 
             ArtifactType.FinalBuild 
         };
 
@@ -245,7 +273,7 @@ public class ArtifactsController : ControllerBase
         }
 
         var pendingChecklistItems = new List<string>();
-        var closureDoc = artifacts.FirstOrDefault(a => a.Type == ArtifactType.ClosureDocument);
+        var closureDoc = artifacts.FirstOrDefault(a => a.Type == ArtifactType.ClosureDoc);
         if (closureDoc != null && !string.IsNullOrEmpty(closureDoc.ClosureChecklistJson))
         {
             // Parse checklist and find uncompleted items
@@ -275,7 +303,7 @@ public class ArtifactsController : ControllerBase
         ArtifactType.UserManual => "Manual de Usuario",
         ArtifactType.TechnicalManual => "Manual Técnico",
         ArtifactType.DeploymentPlan => "Plan de Despliegue",
-        ArtifactType.ClosureDocument => "Documento de Cierre",
+        ArtifactType.ClosureDoc => "Documento de Cierre",
         ArtifactType.FinalBuild => "Build Final",
         ArtifactType.BetaTestReport => "Reporte de Pruebas Beta",
         _ => type.ToString()
@@ -293,6 +321,8 @@ public class ArtifactsController : ControllerBase
         [FromForm] string? buildIdentifier = null,
         [FromForm] string? buildDownloadUrl = null,
         [FromForm] string? closureChecklistJson = null,
+        [FromForm] string? repositoryUrl = null,
+        [FromForm] string? assignedTo = null,
         IFormFile? file = null)
     {
         var phase = await _context.ProjectPhases.FindAsync(projectPhaseId);
@@ -303,89 +333,49 @@ public class ArtifactsController : ControllerBase
 
         var artifact = new Artifact
         {
-            Type = dto.Type,
-            ProjectPhaseId = dto.ProjectPhaseId,
-            IsMandatory = dto.IsMandatory,
+            Type = artifactType,
+            ProjectPhaseId = projectPhaseId,
+            IsMandatory = isMandatory,
             Status = ArtifactStatus.Pending,
-            AssignedTo = dto.AssignedTo
+            AssignedTo = assignedTo,
+            BuildIdentifier = buildIdentifier,
+            BuildDownloadUrl = buildDownloadUrl,
+            ClosureChecklistJson = closureChecklistJson
         };
 
         var firstVersion = new ArtifactVersion
         {
             Artifact = artifact,
             VersionNumber = 1,
-            Author = dto.Author,
-            Content = dto.Content,
-            RepositoryUrl = dto.RepositoryUrl
-        };
-
-        if (dto.File != null)
-        {
-            var uploadsDir = Path.Combine(_env.ContentRootPath, "uploads");
-            if (!Directory.Exists(uploadsDir))
-            {
-                Directory.CreateDirectory(uploadsDir);
-            }
-            var uniqueFileName = $"{Guid.NewGuid()}_{dto.File.FileName}";
-            var filePath = Path.Combine(uploadsDir, uniqueFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.File.CopyToAsync(stream);
-            }
-
-            firstVersion.FilePath = filePath;
-            firstVersion.OriginalFileName = dto.File.FileName;
-            firstVersion.ContentType = dto.File.ContentType;
-        }
-
-        artifact.Versions.Add(firstVersion);
-        _context.Artifacts.Add(artifact);
-        await _context.SaveChangesAsync();
-
-        // Create first version
-        var version = new ArtifactVersion
-        {
-            Id = artifact.Id,
-            Type = artifact.Type,
-            ProjectPhaseId = artifact.ProjectPhaseId,
-            IsMandatory = artifact.IsMandatory,
-            Status = artifact.Status,
-            CreatedAt = artifact.CreatedAt,
-            Versions = new List<ArtifactVersionDto> { 
-                new ArtifactVersionDto {
-                    Id = firstVersion.Id,
-                    VersionNumber = firstVersion.VersionNumber,
-                    Author = firstVersion.Author,
-                    Content = firstVersion.Content,
-                    OriginalFileName = firstVersion.OriginalFileName,
-                    RepositoryUrl = firstVersion.RepositoryUrl,
-                    CreatedAt = firstVersion.CreatedAt,
-                    DownloadUrl = !string.IsNullOrEmpty(firstVersion.FilePath) ? $"/uploads/{Path.GetFileName(firstVersion.FilePath)}" : null
-                }
-            }
+            Author = author,
+            Content = content,
+            RepositoryUrl = repositoryUrl,
+            CreatedAt = DateTime.UtcNow
         };
 
         if (file != null)
         {
-            var uploadsPath = Path.Combine(_environment.ContentRootPath, "uploads");
-            Directory.CreateDirectory(uploadsPath);
-
-            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-            var filePath = Path.Combine(uploadsPath, fileName);
+            var uploadsDir = Path.Combine(_environment.ContentRootPath, "uploads");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+            var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+            var filePath = Path.Combine(uploadsDir, uniqueFileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            version.FilePath = filePath;
-            version.OriginalFileName = file.FileName;
-            version.ContentType = file.ContentType;
-            version.FileSize = file.Length;
+            firstVersion.FilePath = filePath;
+            firstVersion.OriginalFileName = file.FileName;
+            firstVersion.ContentType = file.ContentType;
+            firstVersion.FileSize = file.Length;
         }
 
-        _context.ArtifactVersions.Add(version);
+        artifact.Versions.Add(firstVersion);
+        _context.Artifacts.Add(artifact);
         await _context.SaveChangesAsync();
 
         // Reload artifact with versions
@@ -423,7 +413,7 @@ public class ArtifactsController : ControllerBase
 
         if (dto.File != null)
         {
-            var uploadsDir = Path.Combine(_env.ContentRootPath, "uploads");
+            var uploadsDir = Path.Combine(_environment.ContentRootPath, "uploads");
             if (!Directory.Exists(uploadsDir))
             {
                 Directory.CreateDirectory(uploadsDir);

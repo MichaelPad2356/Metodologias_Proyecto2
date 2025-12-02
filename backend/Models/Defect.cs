@@ -19,9 +19,11 @@ public class Defect
     public string Status { get; set; } = "New";
 
     public int ProjectId { get; set; }
+    public Project? Project { get; set; }
     
     // HU-014: Vinculación a artefactos
     public int? ArtifactId { get; set; }
+    public Artifact? Artifact { get; set; }
 
     public string? ReportedBy { get; set; }
     
