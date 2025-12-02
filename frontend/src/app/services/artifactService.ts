@@ -58,6 +58,11 @@ export class ArtifactService {
     return this.http.put<Artifact>(`${this.apiUrl}/${id}`, dto);
   }
 
+  // Actualizar solo el estado
+  updateStatus(id: number, status: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}/status`, status);
+  }
+
   addVersion(artifactId: number, data: FormData): Observable<ArtifactVersion> {
     return this.http.post<ArtifactVersion>(`${this.apiUrl}/${artifactId}/versions`, data);
   }

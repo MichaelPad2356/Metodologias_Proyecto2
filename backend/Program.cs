@@ -138,6 +138,28 @@ if (app.Environment.IsDevelopment())
     }
     catch { /* La tabla ya existe */ }
     
+    // HU-015: Crear tabla Iteraciones si no existe
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Iteraciones (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Nombre TEXT NOT NULL,
+                FechaInicio TEXT NOT NULL,
+                FechaFin TEXT NOT NULL,
+                Objetivo TEXT,
+                FaseOpenUP TEXT,
+                ProjectId INTEGER,
+                CapacidadEquipoHoras REAL DEFAULT 0,
+                PuntosCompletados INTEGER DEFAULT 0,
+                PuntosEstimados INTEGER DEFAULT 0,
+                TareasJson TEXT DEFAULT '[]',
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id)
+            );
+        ");
+    }
+    catch { /* La tabla ya existe */ }
+    
     app.MapOpenApi();
 }
 

@@ -27,14 +27,19 @@
   <!-- RESUMEN DE ESTADO -->
   @if (!loading && !error) {
     <div class="status-summary">
-      <div class="summary-card" [class.complete]="missingMandatory.length === 0">
-        <div class="summary-icon">{{ missingMandatory.length === 0 ? '✅' : '⚠️' }}</div>
+      <div class="summary-card" [class.complete]="(missingMandatory?.length || 0) === 0">
+        <div class="summary-icon">{{ (missingMandatory?.length || 0) === 0 ? '✅' : '⚠️' }}</div>
         <div class="summary-content">
           <h4>Artefactos Obligatorios</h4>
-          @if (missingMandatory.length === 0) {
+          @if ((missingMandatory?.length || 0) === 0) {
             <p>Todos los artefactos obligatorios están registrados</p>
           } @else {
-            <p>Faltan {{ missingMandatory.length }} artefactos obligatorios</p>
+            <p>Faltan {{ missingMandatory?.length || 0 }} artefactos obligatorios</p>
+            <ul class="missing-list">
+              @for (missing of missingMandatory; track missing.type) {
+                <li>{{ missing.typeName }}</li>
+              }
+            </ul>
           }
         </div>
       </div>
@@ -44,9 +49,20 @@
         <div class="summary-content">
           <h4>Estado de Cierre</h4>
           @if (canClose) {
-            <p>El proyecto puede ser cerrado</p>
+            <p>✅ El proyecto puede ser cerrado</p>
           } @else {
-            <p>Faltan requisitos para cerrar</p>
+            <p>Requisitos pendientes:</p>
+            <ul class="requirements-list">
+              @if ((missingMandatory?.length || 0) > 0) {
+                <li>❌ Faltan {{ missingMandatory?.length }} artefactos obligatorios</li>
+              }
+              @if (getPendingApprovalCount() > 0) {
+                <li>⏳ {{ getPendingApprovalCount() }} artefactos pendientes de aprobación</li>
+              }
+              @if (!hasClosureChecklist()) {
+                <li>📋 Completar checklist del Documento de Cierre</li>
+              }
+            </ul>
           }
         </div>
       </div>
@@ -73,9 +89,9 @@
             <!-- Artefacto existe -->
             <div class="artifact-content">
               <div class="artifact-info">
-                <p><strong>Versiones:</strong> {{ artifact.versions.length }}</p>
-                <p><strong>Última actualización:</strong> {{ artifact.versions[0]?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
-                <p><strong>Autor:</strong> {{ artifact.versions[0]?.author }}</p>
+                <p><strong>Versiones:</strong> {{ artifact.versionCount || 0 }}</p>
+                <p><strong>Última actualización:</strong> {{ artifact.latestVersion?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                <p><strong>Autor:</strong> {{ artifact.latestVersion?.author }}</p>
                 
                 <!-- Info específica de Build Final -->
                 @if (typeInfo.type === ArtifactType.FinalBuild && artifact.buildIdentifier) {
@@ -111,27 +127,27 @@
 
                 <!-- Cambiar estado -->
                 <div class="status-dropdown">
-                  <select (change)="changeStatus(artifact, +$any($event.target).value)">
-                    <option [value]="ArtifactStatus.Pending" [selected]="artifact.status === ArtifactStatus.Pending">Pendiente</option>
-                    <option [value]="ArtifactStatus.InReview" [selected]="artifact.status === ArtifactStatus.InReview">En Revisión</option>
-                    <option [value]="ArtifactStatus.Approved" [selected]="artifact.status === ArtifactStatus.Approved">Aprobado</option>
+                  <select (change)="changeStatus(artifact, $any($event.target).value)">
+                    <option value="Pending" [selected]="artifact.status === 'Pending' || artifact.status === 0">Pendiente</option>
+                    <option value="InReview" [selected]="artifact.status === 'InReview' || artifact.status === 1">En Revisión</option>
+                    <option value="Approved" [selected]="artifact.status === 'Approved' || artifact.status === 2">Aprobado</option>
                   </select>
                 </div>
               </div>
 
               <!-- Lista de versiones (resumen) -->
-              @if (artifact.versions.length > 0) {
+              @if (artifact.latestVersion) {
                 <div class="versions-list">
-                  <h4>📌 Última versión: v{{ artifact.versions[0]?.versionNumber }}</h4>
+                  <h4>📌 Última versión: v{{ artifact.latestVersion.versionNumber }}</h4>
                   <div class="version-item">
-                    <span class="version-author">{{ artifact.versions[0]?.author }}</span>
-                    <span class="version-date">{{ artifact.versions[0]?.createdAt | date:'dd/MM/yy HH:mm' }}</span>
-                    @if (artifact.versions[0]?.observations) {
-                      <span class="version-observations">"{{ artifact.versions[0]?.observations }}"</span>
+                    <span class="version-author">{{ artifact.latestVersion.author }}</span>
+                    <span class="version-date">{{ artifact.latestVersion.createdAt | date:'dd/MM/yy HH:mm' }}</span>
+                    @if (artifact.latestVersion.observations) {
+                      <span class="version-observations">"{{ artifact.latestVersion.observations }}"</span>
                     }
                   </div>
-                  @if (artifact.versions.length > 1) {
-                    <p class="more-versions">+ {{ artifact.versions.length - 1 }} versiones anteriores</p>
+                  @if ((artifact.versionCount || 0) > 1) {
+                    <p class="more-versions">+ {{ (artifact.versionCount || 0) - 1 }} versiones anteriores</p>
                   }
                 </div>
               }

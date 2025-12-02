@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Defect> Defects => Set<Defect>();
     public DbSet<Workflow> Workflows => Set<Workflow>();
     public DbSet<WorkflowStep> WorkflowSteps => Set<WorkflowStep>();
+    public DbSet<Iteracion> Iteraciones => Set<Iteracion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,5 +121,9 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<ProjectPhase>()
             .Property(p => p.Status)
             .HasConversion<string>();
+
+        // Configure Iteracion
+        modelBuilder.Entity<Iteracion>()
+            .ToTable("Iteraciones");
     }
 }

@@ -111,11 +111,16 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
     
     this.artifactService.getTransitionArtifacts(this.projectId).subscribe({
       next: (data: TransitionArtifactsResponse) => {
+        console.log('TransitionArtifacts data received:', data);
         this.phaseId = data.phaseId;
         this.artifacts = data.artifacts;
-        this.missingMandatory = data.missingMandatory;
+        this.missingMandatory = data.missingMandatory || [];
         this.canClose = data.canClose;
         this.loading = false;
+        
+        // Debug: mostrar tipos de artefactos recibidos
+        console.log('Artifacts received:', this.artifacts.map(a => ({ id: a.id, type: a.type, typeOf: typeof a.type })));
+        console.log('TransitionTypes:', this.transitionTypes.map(t => ({ type: t.type, typeOf: typeof t.type })));
       },
       error: (err) => {
         this.error = 'Error al cargar los artefactos de transición';
@@ -126,14 +131,74 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
   }
 
   getArtifactByType(type: ArtifactType): Artifact | undefined {
-    return this.artifacts.find(a => a.type === type);
+    // El backend devuelve el type como string (nombre del enum), así que comparamos ambos formatos
+    const typeNumber = Number(type);
+    const typeName = ArtifactType[type]; // Obtiene el nombre string del enum
+    
+    const result = this.artifacts.find(a => {
+      // Comparar tanto como número como string
+      if (typeof a.type === 'string') {
+        return a.type === typeName;
+      }
+      return Number(a.type) === typeNumber;
+    });
+    return result;
   }
 
-  getTypeLabel(type: ArtifactType): string {
+  getTypeLabel(type: ArtifactType | string): string {
+    // Si es string, buscar el label correspondiente
+    if (typeof type === 'string') {
+      const typeLabels: { [key: string]: string } = {
+        'UserManual': 'Manual de Usuario',
+        'TechnicalManual': 'Manual Técnico',
+        'DeploymentPlan': 'Plan de Despliegue',
+        'ClosureDocument': 'Documento de Cierre',
+        'FinalBuild': 'Build Final',
+        'BetaTestReport': 'Reporte de Pruebas Beta'
+      };
+      return typeLabels[type] || type;
+    }
     return ArtifactTypeLabels[type] || type.toString();
   }
 
-  getStatusLabel(status: ArtifactStatus): string {
+  // Contar artefactos pendientes de aprobación
+  getPendingApprovalCount(): number {
+    return this.artifacts.filter(a => {
+      const status = a.status;
+      return status === 'Pending' || status === 'InReview' || 
+             status === ArtifactStatus.Pending || status === ArtifactStatus.InReview;
+    }).length;
+  }
+
+  // Verificar si el documento de cierre tiene checklist completo
+  hasClosureChecklist(): boolean {
+    const closureDoc = this.artifacts.find(a => 
+      a.type === 'ClosureDocument' || a.type === ArtifactType.ClosureDocument
+    );
+    
+    if (!closureDoc || !closureDoc.closureChecklistJson) {
+      return false;
+    }
+    
+    try {
+      const checklist = JSON.parse(closureDoc.closureChecklistJson);
+      // Verificar que todos los items obligatorios estén completados
+      return checklist.every((item: any) => !item.isMandatory || item.isCompleted || item.completed);
+    } catch {
+      return false;
+    }
+  }
+
+  getStatusLabel(status: ArtifactStatus | string): string {
+    // Manejar tanto números como strings
+    if (typeof status === 'string') {
+      switch (status) {
+        case 'Pending': return 'Pendiente';
+        case 'InReview': return 'En Revisión';
+        case 'Approved': return 'Aprobado';
+        default: return status;
+      }
+    }
     switch (status) {
       case ArtifactStatus.Pending: return 'Pendiente';
       case ArtifactStatus.InReview: return 'En Revisión';
@@ -142,7 +207,16 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
     }
   }
 
-  getStatusClass(status: ArtifactStatus): string {
+  getStatusClass(status: ArtifactStatus | string): string {
+    // Manejar tanto números como strings
+    if (typeof status === 'string') {
+      switch (status) {
+        case 'Pending': return 'status-pending';
+        case 'InReview': return 'status-review';
+        case 'Approved': return 'status-approved';
+        default: return '';
+      }
+    }
     switch (status) {
       case ArtifactStatus.Pending: return 'status-pending';
       case ArtifactStatus.InReview: return 'status-review';
@@ -319,8 +393,16 @@ export class TransitionArtifactsComponent implements OnInit, OnChanges {
   }
 
   // Cambiar estado del artefacto
-  changeStatus(artifact: Artifact, status: ArtifactStatus): void {
-    this.artifactService.updateArtifact(artifact.id, { status }).subscribe({
+  changeStatus(artifact: Artifact, status: string): void {
+    // Convertir string a número para el backend
+    const statusMap: { [key: string]: number } = {
+      'Pending': 0,
+      'InReview': 1,
+      'Approved': 2
+    };
+    const statusNumber = statusMap[status] ?? 0;
+    
+    this.artifactService.updateStatus(artifact.id, statusNumber).subscribe({
       next: () => {
         this.loadTransitionArtifacts();
         alert('✅ Estado actualizado');

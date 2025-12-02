@@ -152,14 +152,16 @@ export interface Artifact {
   name: string;
   description: string;
   isMandatory: boolean;
-  type: ArtifactType;
+  type: ArtifactType | string;  // Puede ser número o string del enum
   typeName: string;
   author: string;
   projectPhaseId: number;
-  status: ArtifactStatus;
+  status: ArtifactStatus | string;  // Puede ser número o string del enum
   statusName: string;
   createdAt: Date;
-  versions: ArtifactVersion[];
+  versionCount: number;  // Número de versiones
+  latestVersion?: ArtifactVersion;  // Última versión
+  versions?: ArtifactVersion[];  // Array de versiones (opcional, para carga adicional)
   
   // Campos específicos para Build Final (HU-009)
   buildIdentifier?: string;

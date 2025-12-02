@@ -22,7 +22,7 @@ export class ArtifactsManagerComponent implements OnChanges {
   artifactForm!: FormGroup;
   selectedFile: File | null = null;
 
-  private apiUrl = 'http://localhost:5062/api/artifacts';
+  private apiUrl = '/api/artifacts';
 
   artifactTypes = Object.keys(ArtifactType)
     .filter(key => !isNaN(Number(ArtifactType[key as keyof typeof ArtifactType])))
