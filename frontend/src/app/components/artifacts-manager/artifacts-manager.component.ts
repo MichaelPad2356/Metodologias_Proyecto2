@@ -1,15 +1,16 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms'; 
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Artifact, ArtifactType } from '../../models/artifact.model';
-import { ArtifactService } from '../../services/artifactService';
 
 @Component({
   selector: 'app-artifacts-manager',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule 
   ],
   templateUrl: './artifacts-manager.component.html',
   styleUrls: ['./artifacts-manager.component.scss']
@@ -18,22 +19,30 @@ export class ArtifactsManagerComponent implements OnChanges {
   @Input() phaseId!: number;
 
   artifacts: Artifact[] = [];
-  artifactForm: FormGroup;
+  artifactForm!: FormGroup;
   selectedFile: File | null = null;
+
+  private apiUrl = '/api/artifacts';
 
   artifactTypes = Object.keys(ArtifactType)
     .filter(key => !isNaN(Number(ArtifactType[key as keyof typeof ArtifactType])))
     .map(key => ({ key: key, value: ArtifactType[key as keyof typeof ArtifactType] }));
 
   constructor(
-    private artifactService: ArtifactService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private http: HttpClient
   ) {
+    this.initForm();
+  }
+
+  initForm() {
     this.artifactForm = this.fb.group({
-      type: [null, Validators.required],
-      author: ['', Validators.required],
-      isMandatory: [false],
+      name: ['', Validators.required],
+      description: [''],
+      type: ['', Validators.required],
+      author: [''],
       content: [''],
+      isMandatory: [false]
     });
   }
 
@@ -44,8 +53,11 @@ export class ArtifactsManagerComponent implements OnChanges {
   }
 
   loadArtifacts(): void {
-    this.artifactService.getArtifactsForPhase(this.phaseId).subscribe((data: Artifact[]) => {
-      this.artifacts = data;
+    this.http.get<Artifact[]>(`${this.apiUrl}/phase/${this.phaseId}`).subscribe({
+      next: (data) => {
+        this.artifacts = data;
+      },
+      error: (err) => console.error('Error al cargar artefactos:', err)
     });
   }
 
@@ -62,23 +74,28 @@ export class ArtifactsManagerComponent implements OnChanges {
     }
 
     const formData = new FormData();
+    formData.append('name', this.artifactForm.value.name);
+    formData.append('description', this.artifactForm.value.description || '');
+    formData.append('type', this.artifactForm.value.type);
+    formData.append('author', this.artifactForm.value.author || '');
+    formData.append('content', this.artifactForm.value.content || '');
+    formData.append('isMandatory', this.artifactForm.value.isMandatory.toString());
     formData.append('projectPhaseId', this.phaseId.toString());
-    formData.append('type', this.artifactForm.get('type')?.value);
-    formData.append('author', this.artifactForm.get('author')?.value);
-    formData.append('isMandatory', this.artifactForm.get('isMandatory')?.value);
-    formData.append('content', this.artifactForm.get('content')?.value);
 
     if (this.selectedFile) {
-      formData.append('file', this.selectedFile, this.selectedFile.name);
+      formData.append('file', this.selectedFile);
     }
 
-    this.artifactService.createArtifact(formData).subscribe((newArtifact: Artifact) => {
-      this.loadArtifacts();
-      this.artifactForm.reset();
-      this.selectedFile = null;
-      const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
+    this.http.post(this.apiUrl, formData).subscribe({
+      next: () => {
+        this.loadArtifacts();
+        this.artifactForm.reset({ isMandatory: false });
+        this.selectedFile = null;
+        alert('Artefacto creado exitosamente');
+      },
+      error: (err: any) => {
+        console.error('Error al crear artefacto:', err);
+        alert('Error al crear el artefacto');
       }
     });
   }

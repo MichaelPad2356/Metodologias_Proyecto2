@@ -133,4 +133,18 @@ export class ProjectService {
   getProjectProgress(projectId: number): Observable<any> {
     return this.http.get<any>(`/api/planning/progreso/${projectId}`);
   }
+
+  /**
+   * Comprueba si se pueden avanzar las fases de un proyecto
+   */
+  checkPhaseArtifacts(phaseId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/phases/${phaseId}/can-advance`);
+  }
+
+  /**
+   * Avanza una fase de un proyecto
+   */
+  advancePhase(phaseId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/phases/${phaseId}/advance`, {});
+  }
 }

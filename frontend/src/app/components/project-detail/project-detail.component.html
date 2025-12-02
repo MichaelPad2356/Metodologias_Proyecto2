@@ -147,10 +147,33 @@
                     {{ getPhaseStatusLabel(phase.status) }}
                   </span>
                 </div>
+                <!-- BOTÓN DE AVANZAR FASE -->
+                @if (phase.status === 'InProgress') {
+                  <button 
+                    class="btn btn-sm btn-primary advance-phase-btn"
+                    (click)="checkAndAdvancePhase(phase.id)"
+                    title="Validar artefactos obligatorios y avanzar fase"
+                  >
+                    ✅ Completar Fase
+                  </button>
+                }
               </div>
               <!-- ARTEFACTOS PARA ESTA FASE -->
               <div class="artifacts-for-phase">
-                <app-artifacts-manager [phaseId]="phase.id"></app-artifacts-manager>
+                @if (phase.name === 'Transición') {
+                  <!-- Botón especial para fase de Transición (HU-009) -->
+                  <div class="transition-phase-card">
+                    <div class="transition-info">
+                      <h4>📋 Artefactos de Cierre</h4>
+                      <p>Gestiona los documentos de entrega: Manual de Usuario, Manual Técnico, Plan de Despliegue, Build Final, Pruebas Beta y Documento de Cierre.</p>
+                    </div>
+                    <button class="btn btn-primary btn-transition" [routerLink]="['/projects', project.id, 'transition']">
+                      🚀 Gestionar Artefactos de Transición
+                    </button>
+                  </div>
+                } @else {
+                  <app-artifacts-manager [phaseId]="phase.id"></app-artifacts-manager>
+                }
               </div>
             </div>
           }

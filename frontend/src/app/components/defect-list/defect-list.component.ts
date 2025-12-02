@@ -1,154 +1,292 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DefectService } from '../../services/defect.service';
-import { Defect } from '../../models/defect.model';
 import { RouterModule } from '@angular/router';
+import { DefectService } from '../../services/defect.service';
+import { Defect, DefectSeverityLabels, DefectStatusLabels } from '../../models/defect.model';
 
 @Component({
   selector: 'app-defect-list',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="page-container">
-      <div class="header-section">
-        <div>
-          <h1 class="page-title">Control de Calidad</h1>
-          <p class="page-subtitle">Gestión y seguimiento de defectos del proyecto</p>
+    <div class="defects-container">
+      <div class="defects-header">
+        <div class="header-content">
+          <div class="title-section">
+            <span class="icon">🐞</span>
+            <div>
+              <h1>Gestión de Defectos</h1>
+              <p class="subtitle">Registra y da seguimiento a los defectos del proyecto</p>
+            </div>
+          </div>
+          <a routerLink="/defects/new" class="btn-new">
+            <span class="plus">+</span> Nuevo Defecto
+          </a>
         </div>
-        <a routerLink="/defects/new" class="btn-primary">
-          <span class="icon">+</span> Reportar Defecto
-        </a>
       </div>
 
-      <div *ngIf="defects.length === 0" class="empty-state">
-        <div class="empty-icon">🐞</div>
-        <h3>No hay defectos reportados</h3>
-        <p>¡Buen trabajo! O quizás nadie ha probado nada aún...</p>
-      </div>
+      <div class="defects-content">
+        <div class="card">
+          <div class="card-body">
+            <div *ngIf="loading" class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+            </div>
 
-      <div *ngIf="defects.length > 0" class="card-table-container">
-        <table class="modern-table">
-          <thead>
-            <tr>
-              <th width="5%">ID</th>
-              <th width="35%">Defecto</th>
-              <th width="15%">Severidad</th>
-              <th width="15%">Estado</th>
-              <th width="20%">Asignado a</th>
-              <th width="10%">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let d of defects">
-              <td class="id-cell">#{{d.id}}</td>
-              <td>
-                <div class="defect-info">
-                  <span class="defect-title">{{d.title}}</span>
-                  <span class="defect-desc">{{d.description | slice:0:50}}{{d.description.length > 50 ? '...' : ''}}</span>
-                </div>
-              </td>
-              <td>
-                <span [class]="'badge severity-' + d.severity.toLowerCase()">
-                  {{d.severity}}
-                </span>
-              </td>
-              <td>
-                <div class="status-indicator">
-                  <span [class]="'dot ' + d.status.toLowerCase()"></span>
-                  {{d.status}}
-                </div>
-              </td>
-              <td class="user-cell">
-                <div class="avatar-circle">{{(d.assignedTo || '?').charAt(0)}}</div>
-                <span>{{d.assignedTo || 'Sin asignar'}}</span>
-              </td>
-              <td>
-                <button class="btn-icon">✏️</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            <div *ngIf="!loading && defects.length === 0" class="empty-state">
+              <span class="empty-icon">📋</span>
+              <h3>No hay defectos registrados</h3>
+              <p>Comienza registrando un nuevo defecto para dar seguimiento</p>
+              <a routerLink="/defects/new" class="btn-empty">+ Registrar Defecto</a>
+            </div>
+
+            <div *ngIf="!loading && defects.length > 0" class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Severidad</th>
+                    <th>Estado</th>
+                    <th>Reportado por</th>
+                    <th>Asignado a</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let defect of defects">
+                    <td class="id-cell">#{{defect.id}}</td>
+                    <td class="title-cell">{{defect.title}}</td>
+                    <td>
+                      <span [class]="getSeverityBadgeClass(defect.severity)">
+                        {{getSeverityLabel(defect.severity)}}
+                      </span>
+                    </td>
+                    <td>
+                      <span [class]="getStatusBadgeClass(defect.status)">
+                        {{getStatusLabel(defect.status)}}
+                      </span>
+                    </td>
+                    <td>{{defect.reportedBy}}</td>
+                    <td>{{defect.assignedTo || '-'}}</td>
+                    <td class="date-cell">{{defect.createdAt | date:'dd/MM/yyyy'}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
   styles: [`
-    /* Layout General */
-    .page-container { max-width: 1200px; margin: 0 auto; padding: 2rem; font-family: 'Inter', sans-serif; }
-    
-    /* Header */
-    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .page-title { font-size: 1.75rem; font-weight: 700; color: #111827; margin: 0; }
-    .page-subtitle { color: #6b7280; margin-top: 0.25rem; }
-
-    /* Botón Primario */
-    .btn-primary { 
-      background-color: #2563eb; color: white; padding: 0.75rem 1.5rem; 
-      border-radius: 8px; text-decoration: none; font-weight: 500; 
-      transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem;
-      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    .defects-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
     }
-    .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); }
-
-    /* Tabla Estilizada */
-    .card-table-container { 
-      background: white; border-radius: 12px; 
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06); 
-      overflow: hidden; border: 1px solid #e5e7eb;
+    .defects-header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      padding: 2rem;
+      color: white;
     }
-    .modern-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .modern-table th { 
-      background-color: #f9fafb; padding: 1rem 1.5rem; font-size: 0.75rem; 
-      text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 600; 
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .modern-table td { padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; vertical-align: middle; }
-    .modern-table tr:hover { background-color: #f9fafb; }
-
-    /* Celdas Específicas */
-    .id-cell { font-family: monospace; color: #6b7280; }
-    .defect-info { display: flex; flex-direction: column; }
-    .defect-title { font-weight: 500; color: #111827; }
-    .defect-desc { font-size: 0.875rem; color: #6b7280; margin-top: 2px; }
-
-    /* Badges de Severidad */
-    .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-    .severity-critical { background-color: #fee2e2; color: #991b1b; }
-    .severity-high { background-color: #ffedd5; color: #9a3412; }
-    .severity-medium { background-color: #fef3c7; color: #92400e; }
-    .severity-low { background-color: #d1fae5; color: #065f46; }
-
-    /* Estado */
-    .status-indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #374151; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .dot.new { background-color: #3b82f6; }
-    .dot.assigned { background-color: #f59e0b; }
-    .dot.fixed { background-color: #10b981; }
-    .dot.closed { background-color: #6b7280; }
-
-    /* Avatar */
-    .user-cell { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: #374151; }
-    .avatar-circle { 
-      width: 28px; height: 28px; background-color: #e5e7eb; border-radius: 50%; 
-      display: flex; align-items: center; justify-content: center; 
-      font-size: 0.75rem; font-weight: 600; color: #4b5563;
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
-
-    /* Estado Vacío */
-    .empty-state { text-align: center; padding: 4rem 1rem; color: #6b7280; }
-    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-
-    .btn-icon { background: none; border: none; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
-    .btn-icon:hover { opacity: 1; }
+    .title-section .icon {
+      font-size: 2.5rem;
+    }
+    .title-section h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+    .title-section .subtitle {
+      margin: 0.25rem 0 0 0;
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+    .btn-new {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    .btn-new:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      color: white;
+    }
+    .btn-new .plus {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .defects-content {
+      max-width: 1200px;
+      margin: -2rem auto 2rem auto;
+      padding: 0 1rem;
+    }
+    .card {
+      background: white;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-body {
+      padding: 0;
+    }
+    .table {
+      margin-bottom: 0;
+      width: 100%;
+    }
+    .table th {
+      background-color: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 1rem 1.25rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table td {
+      padding: 1rem 1.25rem;
+      vertical-align: middle;
+      color: #334155;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+    .table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+    .id-cell {
+      font-weight: 600;
+      color: #6366f1;
+    }
+    .title-cell {
+      font-weight: 500;
+      max-width: 250px;
+    }
+    .date-cell {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .empty-state .empty-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+    .empty-state h3 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    .empty-state p {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+    .btn-empty {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-empty:hover {
+      color: white;
+    }
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+      color: #10b981;
+    }
+    .text-center {
+      padding: 3rem;
+    }
   `]
 })
 export class DefectListComponent implements OnInit {
   defects: Defect[] = [];
+  loading = true;
 
   constructor(private defectService: DefectService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
+    this.loadDefects();
+  }
+
+  loadDefects(): void {
+    this.loading = true;
     this.defectService.getDefects().subscribe({
-      next: (data) => this.defects = data,
-      error: (err) => console.error('Error al cargar defectos:', err)
+      next: (defects: Defect[]) => {
+        this.defects = defects;
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error('Error loading defects:', err);
+        this.loading = false;
+      }
     });
+  }
+
+  getSeverityLabel(severity: string): string {
+    return DefectSeverityLabels[severity] || severity;
+  }
+
+  getStatusLabel(status: string): string {
+    return DefectStatusLabels[status] || status;
+  }
+
+  getSeverityBadgeClass(severity: string): string {
+    const classes: { [key: string]: string } = {
+      'Low': 'badge bg-info',
+      'Medium': 'badge bg-warning text-dark',
+      'High': 'badge bg-danger',
+      'Critical': 'badge bg-dark'
+    };
+    return classes[severity] || 'badge bg-secondary';
+  }
+
+  getStatusBadgeClass(status: string): string {
+    const classes: { [key: string]: string } = {
+      'New': 'badge bg-primary',
+      'Assigned': 'badge bg-warning text-dark',
+      'Fixed': 'badge bg-success',
+      'Closed': 'badge bg-secondary'
+    };
+    return classes[status] || 'badge bg-secondary';
   }
 }

@@ -3,24 +3,29 @@
   <div class="nav-container">
     <div class="nav-links">
       <!-- Link Inicio -->
-      <a href="/" class="nav-item">
+      <a routerLink="/" class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
         <span class="icon">🏠</span> Inicio
       </a>
       
       <!-- Link Planning -->
-      <a href="/planning" class="nav-item">
+      <a routerLink="/planning" class="nav-item" routerLinkActive="active">
         <span class="icon">📊</span> Planning
       </a>
       
       <!-- Link Proyectos -->
-      <a href="/projects" class="nav-item">
+      <a routerLink="/projects" class="nav-item" routerLinkActive="active">
         <span class="icon">📁</span> Proyectos
       </a>
 
-      <a href="/defects" class="nav-item">
+      <!-- Link Defectos -->
+      <a routerLink="/defects" class="nav-item" routerLinkActive="active">
         <span class="icon">🐞</span> Defectos
       </a>
-      
+
+      <!-- Link Flujos de Trabajo -->
+      <a routerLink="/workflows" class="nav-item" routerLinkActive="active">
+        <span class="icon">⚙️</span> Flujos de Trabajo
+      </a>
     </div>
   </div>
 </nav>
@@ -55,7 +60,6 @@
     height: 60px;
     display: flex;
     align-items: center;
-    /* Centramos los links ya que quitamos el título */
     justify-content: flex-start; 
   }
 
@@ -82,6 +86,11 @@
   .nav-item:hover {
     color: #f3f4f6; /* Blanco al pasar el mouse */
     background-color: rgba(255, 255, 255, 0.05); /* Sutil fondo al hover */
+  }
+
+  .nav-item.active {
+    color: #60a5fa; /* Azul para el link activo */
+    border-bottom-color: #60a5fa;
   }
 
   .icon {

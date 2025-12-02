@@ -3,28 +3,41 @@
   <!-- Lista de Artefactos (siempre visible) -->
   <div class="artifacts-list">
     <div class="artifacts-header">
-      <h6 class="artifacts-title">Artefactos</h6>
+      <h3>
+        <span class="icon">📦</span> Artefactos
+      </h3>
       <button 
-        class="btn btn-outline-primary btn-sm add-btn" 
-        type="button" 
-        data-bs-toggle="collapse" 
-        [attr.data-bs-target]="'#form' + phaseId" 
-        aria-expanded="false">
-        <i class="fas fa-plus"></i>
+        class="btn-toggle"
+        type="button"
+        [attr.data-bs-toggle]="'collapse'"
+        [attr.data-bs-target]="'#form' + phaseId"
+        [attr.aria-expanded]="false"
+        [attr.aria-controls]="'form' + phaseId"
+        title="Agregar nuevo artefacto"
+      >
+        <span class="plus-icon">+</span>
       </button>
     </div>
 
     <!-- Lista de artefactos existentes -->
     <div *ngIf="artifacts.length === 0" class="no-artifacts">
-      <small class="text-muted">No hay artefactos registrados</small>
+      <p>No hay artefactos registrados</p>
     </div>
     
     <div *ngFor="let artifact of artifacts" class="artifact-item">
       <div class="artifact-info">
-        <span class="artifact-type">{{ artifact.typeName }}</span>
-        <span class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
-          {{ artifact.statusName }}
-        </span>
+        <span class="artifact-type">{{ artifact.name }}</span>
+        
+        <!-- Control de estado basado en ArtifactStatus -->
+        <div class="status-control ms-3">
+          <span [ngClass]="{
+            'badge bg-warning text-dark': artifact.status === 0,
+            'badge bg-info': artifact.status === 1,
+            'badge bg-success': artifact.status === 2
+          }">
+            {{ artifact.statusName || 'Pendiente' }}
+          </span>
+        </div>
       </div>
       <small class="text-muted">{{ artifact.isMandatory ? 'Obligatorio' : 'Opcional' }}</small>
     </div>
@@ -60,12 +73,31 @@
           <label for="fileInput" class="form-label">Archivo (Opcional)</label>
           <input type="file" id="fileInput" class="form-control form-control-sm" (change)="onFileSelected($event)">
         </div>
-        <div class="form-check mb-3">
-          <input class="form-check-input" type="checkbox" id="isMandatory" formControlName="isMandatory">
-          <label class="form-check-label" for="isMandatory">
-            Es obligatorio
-          </label>
+
+        <!-- CORRECCIÓN AQUÍ: Usamos formControlName en lugar de ngModel -->
+        <div class="form-group mt-3">
+          <div class="form-check form-switch">
+            <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="mandatorySwitch"
+                formControlName="isMandatory"> 
+            <label class="form-check-label" for="mandatorySwitch">
+                {{ artifactForm.get('isMandatory')?.value ? '⚠️ Obligatorio' : '🔓 Opcional' }}
+            </label>
+          </div>
+          <small class="text-muted">
+              Si es obligatorio, no se podrá avanzar de fase hasta que este artefacto esté entregado.
+          </small>
         </div>
+
+        <!-- Tipo de artefacto (ya no usamos workflows) -->
+        <div class="form-group">
+          <small class="form-text text-muted">
+            El artefacto seguirá el flujo de estados estándar: Pendiente → En Revisión → Aprobado
+          </small>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary btn-sm" [disabled]="artifactForm.invalid">
             Guardar

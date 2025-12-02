@@ -10,129 +10,120 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Project> Projects { get; set; }
-    public DbSet<ProjectPhase> ProjectPhases { get; set; }
-    public DbSet<Deliverable> Deliverables { get; set; }
-    public DbSet<Microincrement> Microincrements { get; set; }
-    public DbSet<Artifact> Artifacts { get; set; }
-    public DbSet<ArtifactVersion> ArtifactVersions { get; set; }
-    public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<ProjectPlanVersion> ProjectPlanVersions { get; set; }
-    public DbSet<Iteration> Iterations { get; set; }
-    public DbSet<IterationTask> IterationTasks { get; set; }
-    public DbSet<Iteracion> Iteraciones { get; set; }
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectPhase> ProjectPhases => Set<ProjectPhase>();
+    public DbSet<Iteration> Iterations => Set<Iteration>();
+    public DbSet<IterationTask> IterationTasks => Set<IterationTask>();
+    public DbSet<Microincrement> Microincrements => Set<Microincrement>();
+    public DbSet<Artifact> Artifacts => Set<Artifact>();
+    public DbSet<ArtifactVersion> ArtifactVersions => Set<ArtifactVersion>();
+    public DbSet<ProjectPlanVersion> ProjectPlanVersions => Set<ProjectPlanVersion>();
+    public DbSet<Deliverable> Deliverables => Set<Deliverable>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Defect> Defects => Set<Defect>();
+    public DbSet<Workflow> Workflows => Set<Workflow>();
+    public DbSet<WorkflowStep> WorkflowSteps => Set<WorkflowStep>();
+    public DbSet<Iteracion> Iteraciones => Set<Iteracion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Project configuration
-        modelBuilder.Entity<Project>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Code).IsUnique();
-            entity.Property(e => e.Status).HasConversion<string>();
+        // Configure ProjectPhase relationship
+        modelBuilder.Entity<ProjectPhase>()
+            .HasOne(pp => pp.Project)
+            .WithMany(p => p.Phases)
+            .HasForeignKey(pp => pp.ProjectId);
 
-            entity.HasMany(e => e.Phases)
-                .WithOne(e => e.Project)
-                .HasForeignKey(e => e.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        // Configure Iteration relationship
+        modelBuilder.Entity<Iteration>()
+            .HasOne(i => i.Project)
+            .WithMany()
+            .HasForeignKey(i => i.ProjectId);
 
-        // ProjectPhase configuration
-        modelBuilder.Entity<ProjectPhase>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Status).HasConversion<string>();
-            entity.HasMany(e => e.Artifacts)
-                .WithOne(a => a.ProjectPhase)
-                .HasForeignKey(a => a.ProjectPhaseId);
-        });
+        // Configure IterationTask relationship
+        modelBuilder.Entity<IterationTask>()
+            .HasOne(t => t.Iteration)
+            .WithMany(i => i.Tasks)
+            .HasForeignKey(t => t.IterationId);
 
-        // AuditLog configuration
-        modelBuilder.Entity<AuditLog>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Project)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        modelBuilder.Entity<IterationTask>()
+            .HasOne(t => t.ProjectPhase)
+            .WithMany()
+            .HasForeignKey(t => t.ProjectPhaseId)
+            .IsRequired(false);
 
-        // Deliverable configuration
-        modelBuilder.Entity<Deliverable>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.ProjectPhase)
-                .WithMany(p => p.Deliverables)
-                .HasForeignKey(e => e.ProjectPhaseId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        // Configure Microincrement relationship
+        modelBuilder.Entity<Microincrement>()
+            .HasOne(m => m.ProjectPhase)
+            .WithMany()
+            .HasForeignKey(m => m.ProjectPhaseId);
 
-        // Microincrement configuration
-        modelBuilder.Entity<Microincrement>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.ProjectPhase)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectPhaseId)
-                .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.Deliverable)
-                .WithMany(e => e.Microincrements)
-                .HasForeignKey(e => e.DeliverableId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+        modelBuilder.Entity<Microincrement>()
+            .HasOne(m => m.Deliverable)
+            .WithMany(d => d.Microincrements)
+            .HasForeignKey(m => m.DeliverableId)
+            .IsRequired(false);
 
-        // Artifact configuration
+        // Configure Artifact relationship
         modelBuilder.Entity<Artifact>()
-            .HasMany(a => a.Versions)
-            .WithOne(v => v.Artifact)
-            .HasForeignKey(v => v.ArtifactId);
+            .HasOne(a => a.ProjectPhase)
+            .WithMany(p => p.Artifacts)
+            .HasForeignKey(a => a.ProjectPhaseId);
 
-        // ProjectPlanVersion configuration
-        modelBuilder.Entity<ProjectPlanVersion>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasOne(e => e.Project)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            entity.HasIndex(e => new { e.ProjectId, e.Version }).IsUnique();
-        });
+        // Configure ArtifactVersion relationship
+        modelBuilder.Entity<ArtifactVersion>()
+            .HasOne(av => av.Artifact)
+            .WithMany(a => a.Versions)
+            .HasForeignKey(av => av.ArtifactId);
 
-        // Iteration configuration
-        modelBuilder.Entity<Iteration>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            
-            entity.HasOne(e => e.Project)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            entity.HasMany(e => e.Tasks)
-                .WithOne(e => e.Iteration)
-                .HasForeignKey(e => e.IterationId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        // Configure Deliverable relationship  
+        modelBuilder.Entity<Deliverable>()
+            .HasOne(d => d.ProjectPhase)
+            .WithMany(p => p.Deliverables)
+            .HasForeignKey(d => d.ProjectPhaseId);
 
-        // IterationTask configuration
-        modelBuilder.Entity<IterationTask>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            
-            entity.HasOne(e => e.ProjectPhase)
-                .WithMany()
-                .HasForeignKey(e => e.ProjectPhaseId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+        // Configure Defect relationships
+        modelBuilder.Entity<Defect>()
+            .HasOne(d => d.Project)
+            .WithMany()
+            .HasForeignKey(d => d.ProjectId);
 
-        // Iteracion configuration
-        modelBuilder.Entity<Iteracion>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.TareasJson).HasColumnType("TEXT");
-        });
+        modelBuilder.Entity<Defect>()
+            .HasOne(d => d.Artifact)
+            .WithMany()
+            .HasForeignKey(d => d.ArtifactId)
+            .IsRequired(false);
+
+        // Configure Workflow relationships
+        modelBuilder.Entity<WorkflowStep>()
+            .HasOne(ws => ws.Workflow)
+            .WithMany(w => w.Steps)
+            .HasForeignKey(ws => ws.WorkflowId);
+
+        // Store enums as strings
+        modelBuilder.Entity<Artifact>()
+            .Property(a => a.Type)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Artifact>()
+            .Property(a => a.Status)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Defect>()
+            .Property(d => d.Severity)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Defect>()
+            .Property(d => d.Status)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ProjectPhase>()
+            .Property(p => p.Status)
+            .HasConversion<string>();
+
+        // Configure Iteracion
+        modelBuilder.Entity<Iteracion>()
+            .ToTable("Iteraciones");
     }
 }

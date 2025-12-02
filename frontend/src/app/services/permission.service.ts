@@ -4,28 +4,44 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PermissionService {
-  // SIMULACIÓN: Cambia esto para probar diferentes roles ('Admin', 'Tester', 'Developer')
-  currentUserRole: string = 'Tester'; 
+  // Simulated user role - in a real app, this would come from authentication
+  private currentUserRole: string = 'admin';
 
   constructor() { }
 
   canCreateArtifact(): boolean {
-    return ['Admin', 'Developer'].includes(this.currentUserRole);
+    return ['admin', 'developer', 'analyst'].includes(this.currentUserRole);
   }
 
   canApproveArtifact(): boolean {
-    return ['Admin', 'ProjectManager'].includes(this.currentUserRole);
+    return ['admin', 'manager'].includes(this.currentUserRole);
   }
 
   canCreateDefect(): boolean {
-    return ['Admin', 'Tester'].includes(this.currentUserRole);
+    return ['admin', 'developer', 'tester', 'analyst'].includes(this.currentUserRole);
   }
-  
-  // HU-013: Matriz de permisos
-  canEditStatus(currentStatus: string): boolean {
-    if (this.currentUserRole === 'Admin') return true;
-    if (this.currentUserRole === 'Developer' && currentStatus === 'Pending') return true;
-    if (this.currentUserRole === 'Tester' && currentStatus === 'InReview') return true;
-    return false;
+
+  canEditDefect(): boolean {
+    return ['admin', 'developer', 'tester'].includes(this.currentUserRole);
+  }
+
+  canEditStatus(): boolean {
+    return ['admin', 'manager', 'developer'].includes(this.currentUserRole);
+  }
+
+  canDeleteDefect(): boolean {
+    return ['admin'].includes(this.currentUserRole);
+  }
+
+  canExportHistory(): boolean {
+    return ['admin', 'manager', 'analyst'].includes(this.currentUserRole);
+  }
+
+  getCurrentUserRole(): string {
+    return this.currentUserRole;
+  }
+
+  setCurrentUserRole(role: string): void {
+    this.currentUserRole = role;
   }
 }

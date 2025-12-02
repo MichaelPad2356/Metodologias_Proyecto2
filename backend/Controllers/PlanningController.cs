@@ -13,6 +13,11 @@ namespace backend.Controllers
     public class PlanningController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
+        };
 
         public PlanningController(ApplicationDbContext context)
         {
@@ -37,7 +42,7 @@ namespace backend.Controllers
             {
                 if (!string.IsNullOrEmpty(iteracion.TareasJson))
                 {
-                    iteracion.Tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson) ?? new List<Tarea>();
+                    iteracion.Tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson, _jsonOptions) ?? new List<Tarea>();
                 }
             }
             
@@ -51,7 +56,7 @@ namespace backend.Controllers
             // Serializar tareas a JSON
             if (nuevaIteracion.Tareas != null && nuevaIteracion.Tareas.Any())
             {
-                nuevaIteracion.TareasJson = JsonSerializer.Serialize(nuevaIteracion.Tareas);
+                nuevaIteracion.TareasJson = JsonSerializer.Serialize(nuevaIteracion.Tareas, _jsonOptions);
             }
             
             _context.Set<Iteracion>().Add(nuevaIteracion);
@@ -81,7 +86,7 @@ namespace backend.Controllers
             // Actualizar tareas
             if (iteracionActualizada.Tareas != null)
             {
-                iteracion.TareasJson = JsonSerializer.Serialize(iteracionActualizada.Tareas);
+                iteracion.TareasJson = JsonSerializer.Serialize(iteracionActualizada.Tareas, _jsonOptions);
             }
             
             await _context.SaveChangesAsync();
@@ -115,15 +120,55 @@ namespace backend.Controllers
                 query = query.Where(i => i.ProjectId == projectId.Value);
             }
             
-            var iteracionesPasadas = await query
-                .Where(i => i.PuntosCompletados > 0 && i.FechaFin < DateTime.Now)
-                .ToListAsync();
+            var iteraciones = await query.ToListAsync();
             
-            if (!iteracionesPasadas.Any())
-                return Ok(new { velocidadPromedio = 0, mensaje = "No hay datos históricos suficientes" });
+            if (!iteraciones.Any())
+                return Ok(new { velocidadPromedio = 0, mensaje = "No hay iteraciones registradas" });
 
-            double velocidadPromedio = iteracionesPasadas.Average(i => i.PuntosCompletados);
-            return Ok(new { velocidadPromedio });
+            // Calcular puntos completados basándose en las tareas completadas de cada iteración
+            double totalPuntosCompletados = 0;
+            int iteracionesConTareas = 0;
+
+            foreach (var iteracion in iteraciones)
+            {
+                if (!string.IsNullOrEmpty(iteracion.TareasJson) && iteracion.TareasJson != "[]")
+                {
+                    var tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson, _jsonOptions) ?? new List<Tarea>();
+                    
+                    if (tareas.Count > 0)
+                    {
+                        // Calcular el porcentaje de tareas completadas
+                        int tareasCompletadas = tareas.Count(t => t.Estado == "Completada");
+                        double porcentajeCompletado = (double)tareasCompletadas / tareas.Count;
+                        
+                        // Calcular puntos completados basado en el porcentaje
+                        double puntosIteracion = porcentajeCompletado * iteracion.PuntosEstimados;
+                        totalPuntosCompletados += puntosIteracion;
+                        iteracionesConTareas++;
+                        
+                        // Actualizar el valor almacenado de puntos completados
+                        int nuevosPuntosCompletados = (int)Math.Round(puntosIteracion);
+                        if (iteracion.PuntosCompletados != nuevosPuntosCompletados)
+                        {
+                            iteracion.PuntosCompletados = nuevosPuntosCompletados;
+                            // Marcar como modificado para guardar
+                        }
+                    }
+                }
+            }
+            
+            // Guardar los cambios de puntos completados
+            await _context.SaveChangesAsync();
+            
+            double velocidadPromedio = iteracionesConTareas > 0 
+                ? totalPuntosCompletados / iteracionesConTareas 
+                : 0;
+
+            return Ok(new { 
+                velocidadPromedio,
+                iteracionesConTareas,
+                totalPuntosCompletados = Math.Round(totalPuntosCompletados, 1)
+            });
         }
 
         // Obtener progreso del proyecto basado en tareas
@@ -142,7 +187,7 @@ namespace backend.Controllers
             {
                 if (!string.IsNullOrEmpty(iteracion.TareasJson))
                 {
-                    var tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson) ?? new List<Tarea>();
+                    var tareas = JsonSerializer.Deserialize<List<Tarea>>(iteracion.TareasJson, _jsonOptions) ?? new List<Tarea>();
                     
                     foreach (var tarea in tareas)
                     {

@@ -16,6 +16,10 @@ public class ArtifactVersion
     [MaxLength(100)]
     public string Author { get; set; } = string.Empty;
 
+    // HU-010: Observaciones - descripción de cambios de esta versión
+    [MaxLength(2000)]
+    public string? Observations { get; set; }
+
     // Contenido en línea
     public string? Content { get; set; }
 
@@ -23,6 +27,7 @@ public class ArtifactVersion
     public string? FilePath { get; set; }
     public string? OriginalFileName { get; set; }
     public string? ContentType { get; set; }
+    public long? FileSize { get; set; }  // HU-010: Tamaño del archivo para comparación
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
