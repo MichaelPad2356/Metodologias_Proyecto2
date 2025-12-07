@@ -25,6 +25,23 @@ public class ApplicationDbContext : DbContext
     public DbSet<Workflow> Workflows { get; set; }
     public DbSet<WorkflowStep> WorkflowSteps { get; set; }
 
+    // HU-018: Configuración del sistema
+    public DbSet<SystemRole> SystemRoles { get; set; }
+    public DbSet<CustomArtifactType> CustomArtifactTypes { get; set; }
+    public DbSet<CustomPhaseDefinition> CustomPhaseDefinitions { get; set; }
+    public DbSet<ConfigurationHistory> ConfigurationHistory { get; set; }
+
+    // HU-019: Plantillas OpenUP
+    public DbSet<OpenUpTemplate> OpenUpTemplates { get; set; }
+
+    // HU-020, HU-025, HU-026: Gestión de proyectos
+    public DbSet<ProjectMember> ProjectMembers { get; set; }
+    public DbSet<DeliverableMovement> DeliverableMovements { get; set; }
+    public DbSet<ProjectClosure> ProjectClosures { get; set; }
+
+    // Autenticación
+    public DbSet<User> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -133,8 +150,66 @@ public class ApplicationDbContext : DbContext
             .Property(p => p.Status)
             .HasConversion<string>();
 
+        // Configure Workflow relationships
+        modelBuilder.Entity<Artifact>()
+            .HasOne(a => a.Workflow)
+            .WithMany()
+            .HasForeignKey(a => a.WorkflowId)
+            .IsRequired(false);
+
+        modelBuilder.Entity<Artifact>()
+            .HasOne(a => a.CurrentStep)
+            .WithMany()
+            .HasForeignKey(a => a.CurrentStepId)
+            .IsRequired(false);
+
         // Configure Iteracion
         modelBuilder.Entity<Iteracion>()
             .ToTable("Iteraciones");
+
+        // HU-018: SystemRole configuration
+        modelBuilder.Entity<SystemRole>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        // HU-019: OpenUpTemplate configuration
+        modelBuilder.Entity<OpenUpTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.ParentTemplate)
+                .WithMany()
+                .HasForeignKey(e => e.ParentTemplateId)
+                .IsRequired(false);
+        });
+
+        // HU-025: ProjectMember configuration
+        modelBuilder.Entity<ProjectMember>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId);
+            entity.Property(e => e.Status).HasConversion<string>();
+        });
+
+        // HU-020: DeliverableMovement configuration
+        modelBuilder.Entity<DeliverableMovement>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Deliverable)
+                .WithMany()
+                .HasForeignKey(e => e.DeliverableId);
+        });
+
+        // HU-026: ProjectClosure configuration
+        modelBuilder.Entity<ProjectClosure>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId);
+        });
     }
 }

@@ -318,62 +318,8 @@ Criterios de aceptación:
 Un entregable puede cambiarse de fase con registro de movimiento (usuario y fecha).
 Al mover un entregable, se conserva su historial de versiones y estados.
 Si el movimiento viola reglas (p. ej. pasar a Transición sin artefactos obligatorios), el sistema alerta y requiere confirmación.
-EPIC 8 — Usabilidad, notificaciones e integraciones
 
-HU-021
-Título: Notificaciones y alertas sobre entregables y fases
-Como: Miembro del equipo / Product Owner
-Quiero: recibir notificaciones por cambios importantes (nueva versión, artefacto aprobado, bloqueo)
-Para: estar informado y reaccionar rápidamente
-Prioridad: Alta
-Estimación: 5 puntos
 
-Criterios de aceptación:
-
-Se envían notificaciones configurables por correo y/o en la plataforma cuando: se crea nueva versión, cambia estado a aprobado, hay defectos críticos, o se acerca fecha límite.
-Los usuarios pueden habilitar/deshabilitar tipos de notificación.
-Las notificaciones incluyen enlace directo al artefacto o evento.
-HU-022
-Título: Integración con repositorio de código y sistema de CI (enlace)
-Como: Equipo de Desarrollo
-Quiero: vincular repositorios externos (Git) y registrar builds/versions
-Para: relacionar artefactos de código con entregables y versiones
-Prioridad: Media
-Estimación: 8 puntos
-
-Criterios de aceptación:
-
-Se puede registrar URL de repositorio por proyecto y enlazar commits a versiones de artefacto.
-El sistema puede almacenar metadata de build (id, fecha, logs) cuando se registra manualmente o a través de integración.
-Las builds vinculadas aparecen en la página de entregables.
-HU-023
-Título: Exportar e importar definiciones y artefactos
-Como: Administrador / Product Owner
-Quiero: exportar proyectos/artefactos a formatos estándar (zip, JSON, PDF) e importar plantillas
-Para: hacer respaldos, transferir proyectos o reutilizar plantillas
-Prioridad: Media
-Estimación: 5 puntos
-
-Criterios de aceptación:
-
-Existe función “Exportar proyecto” que empaqueta artefactos y metadatos en zip/JSON.
-Se puede importar una plantilla OpenUP desde un archivo JSON válido y crear proyecto con esa plantilla.
-Las exportaciones incluyen historial de versiones y registros de iteraciones.
-EPIC 9 — Calidad, auditoría y acceso
-
-HU-024
-Título: Auditoría y registro de cambios (trail)
-Como: Coordinador / Auditor
-Quiero: tener un registro completo de quién hizo qué y cuándo en el proyecto
-Para: garantizar trazabilidad y responsabilidad
-Prioridad: Alta
-Estimación: 5 puntos
-
-Criterios de aceptación:
-
-Todas las acciones críticas (crear/editar/eliminar artefactos, cambios de estado, creación de versiones, mover artefactos) quedan registradas con usuario, fecha y detalle.
-El historial es consultable y exportable.
-Los registros no se pierden al archivar proyectos.
 HU-025
 Título: Gestión de usuarios y roles por proyecto
 Como: Administrador

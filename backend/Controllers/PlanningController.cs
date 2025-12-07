@@ -5,11 +5,13 @@ using backend.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PlanningController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

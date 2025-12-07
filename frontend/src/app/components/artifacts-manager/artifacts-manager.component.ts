@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, OnInit } from '@angular/cor
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Artifact, ArtifactType } from '../../models/artifact.model';
+import { Artifact, ArtifactType, Workflow } from '../../models/artifact.model';
 import { ArtifactService } from '../../services/artifactService';
 import { PermissionService } from '../../services/permission.service';
 
@@ -21,6 +21,7 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
   @Input() phaseId!: number;
 
   artifacts: Artifact[] = [];
+  workflows: Workflow[] = [];
   artifactForm!: FormGroup;
   versionForm!: FormGroup;
   selectedFile: File | null = null;
@@ -30,6 +31,9 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
   canCreate: boolean = false;
   canApprove: boolean = false;
   canReview: boolean = false;
+  canEdit: boolean = false;
+  canSetRequired: boolean = false;
+  isReadOnly: boolean = true;
 
   private apiUrl = '/api/artifacts';
 
@@ -48,13 +52,15 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
 
   initForm() {
     this.artifactForm = this.fb.group({
-      name: ['', Validators.required],
-      description: [''],
       type: ['', Validators.required],
-      author: [''],
+      author: ['', Validators.required],
       content: [''],
       repositoryUrl: [''],
-      assignedTo: ['']
+      assignedTo: [''],
+      isMandatory: [false],
+      workflowId: [null],
+      buildIdentifier: [''],
+      buildDownloadUrl: ['']
     });
 
     this.versionForm = this.fb.group({
@@ -67,8 +73,21 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
   ngOnInit(): void {
     this.permService.role$.subscribe(() => {
       this.canCreate = this.permService.canCreateArtifact();
+      this.canEdit = this.permService.canEditArtifact();
       this.canApprove = this.permService.canApproveArtifact();
       this.canReview = this.permService.canReviewArtifact();
+      this.canSetRequired = this.permService.canSetArtifactRequired();
+      this.isReadOnly = this.permService.isReadOnlyForArtifacts();
+    });
+    this.loadWorkflows();
+  }
+
+  loadWorkflows(): void {
+    this.artifactService.getWorkflows().subscribe({
+      next: (data) => {
+        this.workflows = data;
+      },
+      error: (err) => console.error('Error loading workflows:', err)
     });
   }
 
@@ -145,19 +164,20 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
     }
 
     const formData = new FormData();
-    formData.append('name', this.artifactForm.value.name);
-    formData.append('description', this.artifactForm.value.description || '');
-    formData.append('type', this.artifactForm.value.type);
-    formData.append('author', this.artifactForm.value.author || '');
-    formData.append('content', this.artifactForm.value.content || '');
-    formData.append('isMandatory', this.artifactForm.value.isMandatory.toString());
     formData.append('projectPhaseId', this.phaseId.toString());
     formData.append('type', this.artifactForm.get('type')?.value);
     formData.append('author', this.artifactForm.get('author')?.value);
-    formData.append('isMandatory', this.artifactForm.get('isMandatory')?.value);
+    formData.append('isMandatory', this.artifactForm.get('isMandatory')?.value.toString());
     formData.append('content', this.artifactForm.get('content')?.value || '');
     formData.append('repositoryUrl', this.artifactForm.get('repositoryUrl')?.value || '');
     formData.append('assignedTo', this.artifactForm.get('assignedTo')?.value || '');
+    formData.append('buildIdentifier', this.artifactForm.get('buildIdentifier')?.value || '');
+    formData.append('buildDownloadUrl', this.artifactForm.get('buildDownloadUrl')?.value || '');
+    
+    const workflowId = this.artifactForm.get('workflowId')?.value;
+    if (workflowId) {
+      formData.append('workflowId', workflowId);
+    }
 
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
@@ -173,6 +193,30 @@ export class ArtifactsManagerComponent implements OnChanges, OnInit {
       error: (err: any) => {
         console.error('Error al crear artefacto:', err);
         alert('Error al crear el artefacto');
+      }
+    });
+  }
+
+  advanceWorkflowStep(artifact: Artifact): void {
+    if (!artifact.workflowId || !artifact.currentStepId) return;
+
+    const workflow = this.workflows.find(w => w.id === artifact.workflowId);
+    if (!workflow) return;
+
+    const currentStepIndex = workflow.steps.findIndex(s => s.id === artifact.currentStepId);
+    if (currentStepIndex === -1 || currentStepIndex >= workflow.steps.length - 1) return;
+
+    const nextStep = workflow.steps[currentStepIndex + 1];
+
+    if (!confirm(`¿Avanzar al paso "${nextStep.name}"?`)) return;
+
+    this.artifactService.updateWorkflowStep(artifact.id, nextStep.id).subscribe({
+      next: () => {
+        this.loadArtifacts();
+      },
+      error: (err) => {
+        console.error('Error advancing workflow step:', err);
+        alert('Error al avanzar el paso del flujo de trabajo');
       }
     });
   }

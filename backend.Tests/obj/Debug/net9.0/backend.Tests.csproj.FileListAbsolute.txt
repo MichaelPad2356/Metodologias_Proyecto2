@@ -166,3 +166,6 @@ C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\obj\De
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\obj\Debug\net9.0\backend.Tests.pdb
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\obj\Debug\net9.0\backend.Tests.genruntimeconfig.cache
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\obj\Debug\net9.0\ref\backend.Tests.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\bin\Debug\net9.0\Castle.Core.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend.Tests\bin\Debug\net9.0\Moq.dll

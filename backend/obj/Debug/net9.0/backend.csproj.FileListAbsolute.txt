@@ -342,3 +342,11 @@ C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\obj\Debug\ne
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\obj\Debug\net9.0\backend.csproj.Up2Date
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\obj\Debug\net9.0\backend.genruntimeconfig.cache
 C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\obj\Debug\net9.0\ref\backend.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\gio_p\OneDrive\Pictures\Escritorio\Metodologias_p2\backend\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll

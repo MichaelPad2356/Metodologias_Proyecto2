@@ -1,11 +1,13 @@
 using backend.Contracts;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/projects/{projectId}/plan-versions")]
+[Authorize]
 public class PlanVersionsController : ControllerBase
 {
     private readonly IPlanVersionService _planVersionService;

@@ -183,4 +183,24 @@ export interface Artifact {
   // Campos para Documento de Cierre (HU-009)
   closureChecklistJson?: string;
   closureChecklist?: ClosureChecklistItem[];
+
+  // HU-012: Campos de Flujo de Trabajo
+  workflowId?: number;
+  workflowName?: string;
+  currentStepId?: number;
+  currentStepName?: string;
+}
+
+export interface WorkflowStep {
+  id: number;
+  name: string;
+  order: number;
+  workflowId: number;
+}
+
+export interface Workflow {
+  id: number;
+  name: string;
+  description: string;
+  steps: WorkflowStep[];
 }

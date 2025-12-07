@@ -1,26 +1,52 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { PermissionService, UserRole } from './services/permission.service';
+import { AuthService } from './services/auth.service';
+import { InvitationService } from './services/invitation.service';
+import { User } from './models/auth.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'Gestión de Proyectos OpenUP';
-  currentRole: UserRole = 'Admin';
-  roles: UserRole[] = ['Admin', 'ProjectManager', 'Developer', 'Tester', 'Stakeholder'];
+  currentUser: User | null = null;
+  isAuthenticated = false;
+  pendingInvitationsCount = 0;
 
-  constructor(private permService: PermissionService) {
-    this.permService.role$.subscribe(role => this.currentRole = role);
+  constructor(
+    private authService: AuthService,
+    private invitationService: InvitationService
+  ) {}
+
+  ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.isAuthenticated = !!user;
+      
+      // Cargar invitaciones pendientes si está autenticado
+      if (user) {
+        this.loadPendingInvitations();
+      }
+    });
+
+    // Suscribirse a cambios en el contador
+    this.invitationService.pendingCount$.subscribe(count => {
+      this.pendingInvitationsCount = count;
+    });
   }
 
-  onRoleChange() {
-    this.permService.setRole(this.currentRole);
+  loadPendingInvitations(): void {
+    this.invitationService.getPendingCount().subscribe({
+      error: () => this.pendingInvitationsCount = 0
+    });
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

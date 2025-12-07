@@ -103,4 +103,13 @@ export class ArtifactService {
   downloadVersion(artifactId: number, versionNumber: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${artifactId}/versions/${versionNumber}/download`, { responseType: 'blob' });
   }
+
+  // HU-012: Workflows
+  getWorkflows(): Observable<any[]> {
+    return this.http.get<any[]>('/api/workflows');
+  }
+
+  updateWorkflowStep(artifactId: number, nextStepId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${artifactId}/workflow-step`, { nextStepId });
+  }
 }

@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.Contracts;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ArtifactsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -26,6 +28,8 @@ public class ArtifactsController : ControllerBase
         var query = _context.Artifacts
             .Include(a => a.ProjectPhase)
             .Include(a => a.Versions)
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
             .AsQueryable();
 
         if (phaseId.HasValue)
@@ -46,6 +50,8 @@ public class ArtifactsController : ControllerBase
         var artifact = await _context.Artifacts
             .Include(a => a.ProjectPhase)
             .Include(a => a.Versions)
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (artifact == null)
@@ -61,29 +67,12 @@ public class ArtifactsController : ControllerBase
         var artifacts = await _context.Artifacts
             .Include(a => a.ProjectPhase)
             .Include(a => a.Versions)
-            .Select(a => new ArtifactDto
-            {
-                Id = a.Id,
-                Type = a.Type,
-                ProjectPhaseId = a.ProjectPhaseId,
-                IsMandatory = a.IsMandatory,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                Versions = a.Versions.OrderByDescending(v => v.VersionNumber).Select(v => new ArtifactVersionDto
-                {
-                    Id = v.Id,
-                    VersionNumber = v.VersionNumber,
-                    Author = v.Author,
-                    Content = v.Content,
-                    OriginalFileName = v.OriginalFileName,
-                    RepositoryUrl = v.RepositoryUrl,
-                    CreatedAt = v.CreatedAt,
-                    DownloadUrl = !string.IsNullOrEmpty(v.FilePath) ? $"/uploads/{Path.GetFileName(v.FilePath)}" : null
-                }).ToList()
-            })
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
+            .Where(a => a.ProjectPhaseId == phaseId)
             .ToListAsync();
 
-        return Ok(artifacts);
+        return Ok(artifacts.Select(a => MapToDto(a)));
     }
 
     // GET: api/artifacts/project/{projectId}
@@ -94,29 +83,11 @@ public class ArtifactsController : ControllerBase
             .Include(a => a.ProjectPhase)
             .Where(a => a.ProjectPhase.ProjectId == projectId)
             .Include(a => a.Versions)
-            .Select(a => new ArtifactDto
-            {
-                Id = a.Id,
-                Type = a.Type,
-                ProjectPhaseId = a.ProjectPhaseId,
-                IsMandatory = a.IsMandatory,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                Versions = a.Versions.OrderByDescending(v => v.VersionNumber).Select(v => new ArtifactVersionDto
-                {
-                    Id = v.Id,
-                    VersionNumber = v.VersionNumber,
-                    Author = v.Author,
-                    Content = v.Content,
-                    OriginalFileName = v.OriginalFileName,
-                    RepositoryUrl = v.RepositoryUrl,
-                    CreatedAt = v.CreatedAt,
-                    DownloadUrl = !string.IsNullOrEmpty(v.FilePath) ? $"/uploads/{Path.GetFileName(v.FilePath)}" : null
-                }).ToList()
-            })
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
             .ToListAsync();
 
-        return Ok(artifacts);
+        return Ok(artifacts.Select(a => MapToDto(a)));
     }
 
     private ArtifactDto MapToDto(Artifact artifact)
@@ -133,6 +104,10 @@ public class ArtifactsController : ControllerBase
             BuildIdentifier = artifact.BuildIdentifier,
             BuildDownloadUrl = artifact.BuildDownloadUrl,
             ClosureChecklistJson = artifact.ClosureChecklistJson,
+            WorkflowId = artifact.WorkflowId,
+            WorkflowName = artifact.Workflow?.Name,
+            CurrentStepId = artifact.CurrentStepId,
+            CurrentStepName = artifact.CurrentStep?.Name,
             Versions = artifact.Versions.OrderByDescending(v => v.VersionNumber).Select(v => new ArtifactVersionDto
             {
                 Id = v.Id,
@@ -256,19 +231,21 @@ public class ArtifactsController : ControllerBase
 
         var existingTypes = artifacts.Select(a => a.Type).ToHashSet();
 
+        // 1. Check mandatory artifacts
         foreach (var type in mandatoryTypes)
         {
             if (!existingTypes.Contains(type))
             {
                 missingArtifacts.Add(GetArtifactTypeName(type));
             }
-            else
+        }
+
+        // 2. Check ALL artifacts (mandatory or optional) are approved
+        foreach (var artifact in artifacts)
+        {
+            if (artifact.Status != ArtifactStatus.Approved)
             {
-                var artifact = artifacts.First(a => a.Type == type);
-                if (artifact.Status != ArtifactStatus.Approved)
-                {
-                    pendingApproval.Add(new ArtifactTypeInfo(type, GetArtifactTypeName(type)));
-                }
+                pendingApproval.Add(new ArtifactTypeInfo(artifact.Type, GetArtifactTypeName(artifact.Type)));
             }
         }
 
@@ -323,6 +300,7 @@ public class ArtifactsController : ControllerBase
         [FromForm] string? closureChecklistJson = null,
         [FromForm] string? repositoryUrl = null,
         [FromForm] string? assignedTo = null,
+        [FromForm] int? workflowId = null,
         IFormFile? file = null)
     {
         var phase = await _context.ProjectPhases.FindAsync(projectPhaseId);
@@ -340,8 +318,23 @@ public class ArtifactsController : ControllerBase
             AssignedTo = assignedTo,
             BuildIdentifier = buildIdentifier,
             BuildDownloadUrl = buildDownloadUrl,
-            ClosureChecklistJson = closureChecklistJson
+            ClosureChecklistJson = closureChecklistJson,
+            WorkflowId = workflowId
         };
+
+        // Si se asignó un flujo, establecer el primer paso como actual
+        if (workflowId.HasValue)
+        {
+            var firstStep = await _context.WorkflowSteps
+                .Where(s => s.WorkflowId == workflowId.Value)
+                .OrderBy(s => s.Order)
+                .FirstOrDefaultAsync();
+            
+            if (firstStep != null)
+            {
+                artifact.CurrentStepId = firstStep.Id;
+            }
+        }
 
         var firstVersion = new ArtifactVersion
         {
@@ -378,13 +371,49 @@ public class ArtifactsController : ControllerBase
         _context.Artifacts.Add(artifact);
         await _context.SaveChangesAsync();
 
-        // Reload artifact with versions
+        // Reload artifact with versions and workflow info
         artifact = await _context.Artifacts
             .Include(a => a.ProjectPhase)
             .Include(a => a.Versions)
+            .Include(a => a.Workflow)
+            .Include(a => a.CurrentStep)
             .FirstOrDefaultAsync(a => a.Id == artifact.Id);
 
         return CreatedAtAction(nameof(GetArtifact), new { id = artifact!.Id }, MapToDto(artifact));
+    }
+
+    // PUT: api/artifacts/{id}/workflow-step
+    [HttpPut("{id}/workflow-step")]
+    public async Task<IActionResult> UpdateArtifactWorkflowStep(int id, [FromBody] UpdateWorkflowStepDto dto)
+    {
+        var artifact = await _context.Artifacts
+            .Include(a => a.Workflow)
+            .ThenInclude(w => w.Steps)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (artifact == null) return NotFound("Artifact not found");
+        if (artifact.WorkflowId == null) return BadRequest("Artifact has no workflow assigned");
+
+        var step = artifact.Workflow!.Steps.FirstOrDefault(s => s.Id == dto.NextStepId);
+        if (step == null) return BadRequest("Invalid step for this workflow");
+
+        artifact.CurrentStepId = dto.NextStepId;
+        
+        // Lógica opcional: Si es el último paso, marcar como Approved automáticamente
+        var lastStep = artifact.Workflow.Steps.OrderByDescending(s => s.Order).First();
+        if (step.Id == lastStep.Id)
+        {
+            artifact.Status = ArtifactStatus.Approved;
+        }
+        else
+        {
+            // Si no es el último, podría ser InReview o Pending según reglas de negocio
+            // Por simplicidad, lo dejamos en InReview si avanza
+            artifact.Status = ArtifactStatus.InReview;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Workflow step updated", currentStep = step.Name, status = artifact.Status.ToString() });
     }
 
     // POST: api/artifacts/{id}/versions
@@ -468,4 +497,9 @@ public class ArtifactsController : ControllerBase
         }
         return BadRequest("Estado inválido");
     }
+}
+
+public class UpdateWorkflowStepDto
+{
+    public int NextStepId { get; set; }
 }

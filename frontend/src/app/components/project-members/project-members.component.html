@@ -1,0 +1,110 @@
+<div class="members-container">
+  <div class="section-header">
+    <h3>👥 Miembros del Proyecto</h3>
+    <button *ngIf="canManageMembers" class="btn btn-primary" (click)="openInviteModal()">+ Invitar Miembro</button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">✅ {{ successMessage }}</div>
+  <div *ngIf="error" class="alert alert-error">❌ {{ error }}</div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Cargando miembros...</div>
+
+  <!-- Members List -->
+  <div *ngIf="!loading" class="members-list">
+    <div *ngFor="let member of members" class="member-card" [class.pending]="member.status === 'Pending'">
+      <div class="member-avatar">
+        {{ (member.userName || member.userEmail).charAt(0).toUpperCase() }}
+      </div>
+      
+      <div class="member-info">
+        <div class="member-name">
+          {{ member.userName || member.userEmail }}
+          <span *ngIf="member.status === 'Pending'" class="pending-badge">{{ getStatusLabel(member.status) }}</span>
+        </div>
+        <div class="member-email">{{ member.userEmail }}</div>
+        <div class="member-meta">
+          <span class="role-badge" [ngClass]="getRoleClass(member.role)">
+            {{ member.role }}
+          </span>
+          <span class="invite-date">Invitado: {{ formatDate(member.invitedAt) }}</span>
+        </div>
+      </div>
+      
+      <div class="member-actions">
+        <button *ngIf="member.status === 'Pending'" class="btn btn-sm btn-success" (click)="acceptInvitation(member)">
+          ✓ Aceptar
+        </button>
+        <button *ngIf="canManageMembers" class="btn btn-sm" (click)="openEditModal(member)" title="Cambiar rol">
+          ✏️
+        </button>
+        <button *ngIf="canManageMembers" class="btn btn-sm btn-danger" (click)="removeMember(member)" title="Eliminar">
+          🗑️
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="members.length === 0" class="empty-state">
+      <p>No hay miembros en este proyecto</p>
+      <button class="btn btn-primary" (click)="openInviteModal()">Invitar primer miembro</button>
+    </div>
+  </div>
+
+  <!-- Invite Modal -->
+  <div *ngIf="showInviteModal" class="modal-overlay" (click)="closeInviteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Invitar Miembro</h3>
+        <button class="close-btn" (click)="closeInviteModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre (opcional)</label>
+          <input type="text" [(ngModel)]="inviteForm.userName" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="inviteForm.userEmail" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-group">
+          <label>Rol *</label>
+          <select [(ngModel)]="inviteForm.role">
+            <option *ngFor="let role of roleOptions" [value]="role">
+              {{ role }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeInviteModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="inviteMember()">Invitar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Role Modal -->
+  <div *ngIf="showEditModal && editingMember" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cambiar Rol</h3>
+        <button class="close-btn" (click)="closeEditModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Cambiar rol de <strong>{{ editingMember.userName || editingMember.userEmail }}</strong></p>
+        <div class="form-group">
+          <label>Nuevo Rol</label>
+          <select [(ngModel)]="selectedRole">
+            <option *ngFor="let role of roleOptions" [value]="role">
+              {{ role }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="updateMemberRole()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>

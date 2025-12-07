@@ -181,10 +181,22 @@
           }
         </div>
       </div>
+
+      <!-- Miembros del Proyecto (HU-025) -->
+      <div class="card members-card">
+        <app-project-members [projectId]="project.id"></app-project-members>
+      </div>
     </div>
     <!-- Acciones -->
-    @if (project.status !== 'Archived') {
+    @if (project.status !== 'Archived' && project.status !== 'Closed') {
       <div class="actions-bar">
+        <!-- Cierre de Proyecto (HU-026) -->
+        <app-project-closure 
+          [projectId]="project.id" 
+          [projectName]="project.name"
+          (projectClosed)="onProjectClosed()">
+        </app-project-closure>
+        
         <button class="btn btn-secondary" (click)="confirmArchive()">
           📦 Archivar Proyecto
         </button>

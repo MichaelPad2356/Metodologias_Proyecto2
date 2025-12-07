@@ -1,11 +1,13 @@
 using backend.Contracts;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class DefectsController : ControllerBase
 {
     private readonly IDefectService _defectService;

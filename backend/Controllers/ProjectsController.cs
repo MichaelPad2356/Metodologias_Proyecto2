@@ -1,6 +1,8 @@
 using backend.Contracts;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace backend.Controllers;
 
@@ -23,13 +25,42 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene todos los proyectos
+    /// Obtiene los proyectos del usuario actual (creados por él o donde es miembro)
     /// </summary>
     /// <param name="includeArchived">Incluir proyectos archivados</param>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(List<ProjectListDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProjects([FromQuery] bool includeArchived = false)
     {
+        // Obtener email del usuario autenticado
+        var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+        
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            // Si no hay usuario autenticado, devolver lista vacía
+            return Ok(new List<ProjectListDto>());
+        }
+
+        var result = await _projectService.GetUserProjectsAsync(userEmail, includeArchived);
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Obtiene todos los proyectos (solo admin)
+    /// </summary>
+    [HttpGet("all")]
+    [Authorize]
+    [ProducesResponseType(typeof(List<ProjectListDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllProjectsAdmin([FromQuery] bool includeArchived = false)
+    {
+        // Verificar si es admin
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (userRole != "Administrador")
+        {
+            return Forbid();
+        }
+
         var result = await _projectService.GetAllProjectsAsync(includeArchived);
         return Ok(result.Data);
     }
@@ -106,6 +137,7 @@ public class ProjectsController : ControllerBase
     /// Crea un nuevo proyecto OpenUP con las 4 fases predeterminadas
     /// </summary>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
@@ -116,7 +148,8 @@ public class ProjectsController : ControllerBase
         }
 
         var userName = User.Identity?.Name ?? "Sistema";
-        var result = await _projectService.CreateProjectAsync(dto, userName);
+        var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+        var result = await _projectService.CreateProjectAsync(dto, userName, userEmail);
 
         if (!result.Success)
         {

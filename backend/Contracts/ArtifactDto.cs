@@ -18,6 +18,12 @@ public class ArtifactDto
     public string? BuildIdentifier { get; set; }
     public string? BuildDownloadUrl { get; set; }
     public string? ClosureChecklistJson { get; set; }
+    
+    // HU-012: Campos de Flujo de Trabajo
+    public int? WorkflowId { get; set; }
+    public string? WorkflowName { get; set; }
+    public int? CurrentStepId { get; set; }
+    public string? CurrentStepName { get; set; }
 }
 
 public class ArtifactVersionDto

@@ -6,12 +6,16 @@ import { ProjectService } from '../../services/project.service';
 import { Project, PROJECT_STATUS_LABELS, PHASE_STATUS_LABELS, ProjectPlanVersion } from '../../models/project.model';
 import { ProjectProgressComponent } from '../project-progress/project-progress.component';
 import { ArtifactsManagerComponent } from '../artifacts-manager/artifacts-manager.component';
-import { PermissionService } from '../../services/permission.service';
+import { PermissionService, ProjectRole } from '../../services/permission.service';
+import { ProjectMembersComponent } from '../project-members/project-members.component';
+import { ProjectClosureComponent } from '../project-closure/project-closure.component';
+import { ProjectMemberService } from '../../services/project-member.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ProjectProgressComponent, ArtifactsManagerComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ProjectProgressComponent, ArtifactsManagerComponent, ProjectMembersComponent, ProjectClosureComponent],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
 })
@@ -20,6 +24,7 @@ export class ProjectDetailComponent implements OnInit {
   loading = true;
   error: string | null = null;
   canDelete: boolean = false;
+  currentUserProjectRole: string | null = null;
 
   // Cache para datos parseados del plan (evita ExpressionChangedAfterItHasBeenCheckedError)
   private _cronogramaCache: Array<{ date: string; description: string }> | null = null;
@@ -38,7 +43,9 @@ export class ProjectDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private permService: PermissionService
+    private permService: PermissionService,
+    private memberService: ProjectMemberService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -46,11 +53,29 @@ export class ProjectDetailComponent implements OnInit {
       const id = +params['id'];
       if (id) {
         this.loadProject(id);
+        this.loadUserProjectRole(id);
       }
     });
     this.permService.role$.subscribe(() => {
       this.canDelete = this.permService.canDeleteProject();
     });
+  }
+
+  private loadUserProjectRole(projectId: number): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.memberService.getCurrentUserRole(projectId, user.email).subscribe({
+        next: (role) => {
+          this.currentUserProjectRole = role;
+          if (role) {
+            this.permService.setProjectRole(role as ProjectRole);
+          }
+        },
+        error: () => {
+          this.currentUserProjectRole = null;
+        }
+      });
+    }
   }
 
   private loadProject(id: number): void {
@@ -99,6 +124,13 @@ export class ProjectDetailComponent implements OnInit {
       'Completed': 'phase-completed'
     };
     return classMap[status] || '';
+  }
+
+  // HU-026: Handler para cuando el proyecto se cierra
+  onProjectClosed(): void {
+    if (this.project) {
+      this.loadProject(this.project.id);
+    }
   }
 
   confirmArchive(): void {

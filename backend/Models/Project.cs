@@ -44,6 +44,12 @@ public class Project
     [Required]
     public ProjectStatus Status { get; set; } = ProjectStatus.Created;
 
+    /// <summary>
+    /// Email del usuario que creó el proyecto
+    /// </summary>
+    [StringLength(200)]
+    public string? CreatedByEmail { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? ArchivedAt { get; set; }

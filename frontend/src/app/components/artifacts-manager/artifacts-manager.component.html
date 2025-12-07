@@ -25,9 +25,16 @@
     <div *ngFor="let artifact of artifacts" class="artifact-item">
       <div class="artifact-info">
         <span class="artifact-type">{{ artifact.typeName }}</span>
-        <span class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
+        
+        <!-- HU-012: Mostrar estado de Workflow si existe -->
+        <span *ngIf="artifact.workflowName" class="badge bg-info text-dark ms-1">
+          <i class="fas fa-project-diagram"></i> {{ artifact.workflowName }}: {{ artifact.currentStepName }}
+        </span>
+
+        <span *ngIf="!artifact.workflowName" class="badge artifact-status" [ngClass]="getStatusClass(artifact.status)">
           {{ artifact.statusName }}
         </span>
+
         <small *ngIf="artifact.assignedTo" class="text-muted ms-2">
           <i class="fas fa-user"></i> {{ artifact.assignedTo }}
         </small>
@@ -36,13 +43,31 @@
         </a>
       </div>
       <div class="artifact-actions mt-1">
-        <button *ngIf="artifact.statusName === 'Pending' && canReview" class="btn btn-xs btn-outline-info me-1" (click)="updateArtifactStatus(artifact, 'InReview')">
-          Revisar
-        </button>
-        <button *ngIf="artifact.statusName === 'InReview' && canApprove" class="btn btn-xs btn-outline-success me-1" (click)="updateArtifactStatus(artifact, 'Approved')">
-          Aprobar
-        </button>
-        <button *ngIf="canCreate" class="btn btn-xs btn-outline-secondary" (click)="openVersionForm(artifact.id)">
+        <!-- Acciones Estándar -->
+        <ng-container *ngIf="!artifact.workflowName">
+          <!-- Enviar a Revisión: Solo quien puede editar (Autor, Desarrollador, Admin, PO, SM) -->
+          <button *ngIf="artifact.statusName === 'Pending' && canEdit" class="btn btn-xs btn-outline-info me-1" (click)="updateArtifactStatus(artifact, 'InReview')">
+            Enviar a Revisión
+          </button>
+          <!-- Aprobar: Solo quien puede aprobar (Revisor, PO, SM, Admin) -->
+          <button *ngIf="artifact.statusName === 'InReview' && canApprove" class="btn btn-xs btn-outline-success me-1" (click)="updateArtifactStatus(artifact, 'Approved')">
+            Aprobar
+          </button>
+          <!-- Rechazar: Solo quien puede aprobar -->
+          <button *ngIf="artifact.statusName === 'InReview' && canApprove" class="btn btn-xs btn-outline-danger me-1" (click)="updateArtifactStatus(artifact, 'Pending')">
+            Rechazar
+          </button>
+        </ng-container>
+
+        <!-- HU-012: Acciones de Workflow -->
+        <ng-container *ngIf="artifact.workflowName">
+          <button *ngIf="canEdit || canApprove" class="btn btn-xs btn-outline-primary me-1" (click)="advanceWorkflowStep(artifact)">
+            Avanzar Paso <i class="fas fa-forward"></i>
+          </button>
+        </ng-container>
+
+        <!-- Agregar versión: Solo quien puede editar -->
+        <button *ngIf="canEdit" class="btn btn-xs btn-outline-secondary" (click)="openVersionForm(artifact.id)">
           + Versión
         </button>
       </div>
@@ -107,13 +132,24 @@
           <label for="repositoryUrl" class="form-label">URL del Repositorio (Opcional)</label>
           <input type="url" id="repositoryUrl" class="form-control form-control-sm" formControlName="repositoryUrl" placeholder="https://github.com/...">
         </div>
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label for="buildIdentifier" class="form-label">ID de Build / Versión (Opcional)</label>
+            <input type="text" id="buildIdentifier" class="form-control form-control-sm" formControlName="buildIdentifier" placeholder="v1.0.0-beta">
+          </div>
+          <div class="col-6 mb-3">
+            <label for="buildDownloadUrl" class="form-label">URL de Descarga (Opcional)</label>
+            <input type="url" id="buildDownloadUrl" class="form-control form-control-sm" formControlName="buildDownloadUrl" placeholder="https://...">
+          </div>
+        </div>
         <div class="mb-3">
           <label for="fileInput" class="form-label">Archivo (Opcional)</label>
           <input type="file" id="fileInput" class="form-control form-control-sm" (change)="onFileSelected($event)">
         </div>
 
         <!-- CORRECCIÓN AQUÍ: Usamos formControlName en lugar de ngModel -->
-        <div class="form-group mt-3">
+        <!-- Solo PO y Admin pueden marcar como obligatorio -->
+        <div class="form-group mt-3" *ngIf="canSetRequired">
           <div class="form-check form-switch">
             <input 
                 class="form-check-input" 
@@ -129,9 +165,16 @@
           </small>
         </div>
 
-        <!-- Tipo de artefacto (ya no usamos workflows) -->
-        <div class="form-group">
-          <small class="form-text text-muted">
+        <!-- HU-012: Selección de Workflow -->
+        <div class="col-12 mb-3">
+          <label for="workflow" class="form-label">Flujo de Trabajo (Opcional)</label>
+          <select id="workflow" class="form-select form-select-sm" formControlName="workflowId">
+            <option [ngValue]="null">Ninguno (Estándar)</option>
+            <option *ngFor="let wf of workflows" [ngValue]="wf.id">
+              {{ wf.name }}
+            </option>
+          </select>
+          <small class="form-text text-muted" *ngIf="!artifactForm.get('workflowId')?.value">
             El artefacto seguirá el flujo de estados estándar: Pendiente → En Revisión → Aprobado
           </small>
         </div>

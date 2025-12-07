@@ -1,0 +1,236 @@
+<div class="templates-container">
+  <header class="page-header">
+    <h1>📋 Plantillas OpenUP</h1>
+    <p>Gestione plantillas versionadas para sus proyectos</p>
+  </header>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">✅ {{ successMessage }}</div>
+  <div *ngIf="error" class="alert alert-error">❌ {{ error }}</div>
+
+  <!-- Actions -->
+  <div class="actions-bar">
+    <button class="btn btn-primary" (click)="openCreateModal()">+ Nueva Plantilla</button>
+    <button class="btn btn-secondary" (click)="openCompareModal()" [disabled]="templates.length < 2">
+      🔍 Comparar Plantillas
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Cargando plantillas...</div>
+
+  <!-- Templates Grid -->
+  <div *ngIf="!loading" class="templates-grid">
+    <div *ngFor="let template of templates" class="template-card" [class.default]="template.isDefault">
+      <div class="template-header">
+        <h3>{{ template.name }}</h3>
+        <span *ngIf="template.isDefault" class="badge badge-default">⭐ Predeterminada</span>
+        <span class="version-badge">v{{ template.version }}</span>
+      </div>
+      
+      <p class="template-description">{{ template.description || 'Sin descripción' }}</p>
+      
+      <div class="template-meta">
+        <span>📅 {{ formatDate(template.createdAt) }}</span>
+        <span>👤 {{ template.createdBy }}</span>
+      </div>
+
+      <div *ngIf="template.phases && template.phases.length > 0" class="phases-list">
+        <strong>Fases:</strong>
+        <span *ngFor="let phase of template.phases" class="phase-tag">{{ phase.name }}</span>
+      </div>
+
+      <div class="template-actions">
+        <button class="btn btn-sm" (click)="openApplyModal(template.id)" title="Aplicar a proyecto">
+          🚀 Aplicar
+        </button>
+        <button class="btn btn-sm" (click)="openVersionModal(template.id)" title="Nueva versión">
+          📄 Versionar
+        </button>
+        <button class="btn btn-sm btn-primary" (click)="setAsDefault(template)" 
+                *ngIf="!template.isDefault" title="Establecer como predeterminada">
+          ⭐
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="deleteTemplate(template)" 
+                [disabled]="template.isDefault" title="Eliminar">
+          🗑️
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="templates.length === 0" class="empty-state">
+      <p>No hay plantillas definidas</p>
+      <button class="btn btn-primary" (click)="openCreateModal()">Crear primera plantilla</button>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div *ngIf="showCreateModal" class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Nueva Plantilla OpenUP</h3>
+        <button class="close-btn" (click)="closeCreateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="newTemplate.name" placeholder="Nombre de la plantilla">
+          </div>
+          <div class="form-group">
+            <label>Versión *</label>
+            <input type="text" [(ngModel)]="newTemplate.version" placeholder="1.0">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="newTemplate.description" placeholder="Descripción de la plantilla"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Creado por *</label>
+          <input type="text" [(ngModel)]="newTemplate.createdBy" placeholder="Su nombre">
+        </div>
+        
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="newTemplate.isDefault">
+            Establecer como plantilla predeterminada
+          </label>
+        </div>
+
+        <div class="phases-section">
+          <h4>Fases de la Plantilla</h4>
+          <div class="phase-form">
+            <input type="text" [(ngModel)]="newPhaseName" placeholder="Nombre de la fase">
+            <input type="number" [(ngModel)]="newPhaseOrder" min="1" placeholder="Orden">
+            <button class="btn btn-sm btn-primary" (click)="addPhase()">+ Agregar</button>
+          </div>
+          
+          <div class="phases-list-edit">
+            <div *ngFor="let phase of newTemplate.phases; let i = index" class="phase-item">
+              <span>{{ phase.order }}. {{ phase.name }}</span>
+              <button class="btn btn-sm btn-danger" (click)="removePhase(i)">×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCreateModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="createTemplate()">Crear Plantilla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compare Modal -->
+  <div *ngIf="showCompareModal" class="modal-overlay" (click)="closeCompareModal()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Comparar Plantillas</h3>
+        <button class="close-btn" (click)="closeCompareModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="compare-selectors">
+          <div class="form-group">
+            <label>Plantilla 1</label>
+            <select [(ngModel)]="compareId1">
+              <option [ngValue]="null">Seleccione...</option>
+              <option *ngFor="let t of templates" [ngValue]="t.id">{{ t.name }} (v{{ t.version }})</option>
+            </select>
+          </div>
+          <div class="vs-separator">VS</div>
+          <div class="form-group">
+            <label>Plantilla 2</label>
+            <select [(ngModel)]="compareId2">
+              <option [ngValue]="null">Seleccione...</option>
+              <option *ngFor="let t of templates" [ngValue]="t.id">{{ t.name }} (v{{ t.version }})</option>
+            </select>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" (click)="compareTemplates()" 
+                [disabled]="!compareId1 || !compareId2 || compareId1 === compareId2">
+          Comparar
+        </button>
+
+        <div *ngIf="comparison" class="comparison-results">
+          <h4>Resultados de la Comparación</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Campo</th>
+                <th>{{ comparison.template1.name }}</th>
+                <th>{{ comparison.template2.name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let diff of comparison.differences">
+                <td><strong>{{ diff.field }}</strong></td>
+                <td>{{ diff.template1Value || '-' }}</td>
+                <td>{{ diff.template2Value || '-' }}</td>
+              </tr>
+              <tr *ngIf="comparison.differences.length === 0">
+                <td colspan="3" class="empty-message">Las plantillas son idénticas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeCompareModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apply Modal -->
+  <div *ngIf="showApplyModal" class="modal-overlay" (click)="closeApplyModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Aplicar Plantilla a Proyecto</h3>
+        <button class="close-btn" (click)="closeApplyModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Seleccione el proyecto *</label>
+          <select [(ngModel)]="selectedProjectId">
+            <option [ngValue]="null">Seleccione un proyecto...</option>
+            <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }} ({{ p.code }})</option>
+          </select>
+        </div>
+        <p class="warning-text">
+          ⚠️ Al aplicar la plantilla, se sobrescribirá la configuración actual del proyecto.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeApplyModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="applyToProject()" [disabled]="!selectedProjectId">
+          Aplicar Plantilla
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version Modal -->
+  <div *ngIf="showVersionModal" class="modal-overlay" (click)="closeVersionModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Crear Nueva Versión</h3>
+        <button class="close-btn" (click)="closeVersionModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Número de versión *</label>
+          <input type="text" [(ngModel)]="newVersionNumber" placeholder="Ej: 2.0">
+        </div>
+        <p class="info-text">
+          Se creará una copia de la plantilla actual con la nueva versión.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeVersionModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="createVersion()">Crear Versión</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -16,7 +16,7 @@ public class ProjectService : IProjectService
         _auditService = auditService;
     }
 
-    public async Task<Result<ProjectDto>> CreateProjectAsync(CreateProjectDto dto, string? userName = null)
+    public async Task<Result<ProjectDto>> CreateProjectAsync(CreateProjectDto dto, string? userName = null, string? userEmail = null)
     {
         // Validar que el código no exista
         var existingProject = await _context.Projects
@@ -42,7 +42,8 @@ public class ProjectService : IProjectService
             ResponsiblePerson = dto.ResponsiblePerson,
             Tags = dto.Tags,
             Status = ProjectStatus.Created,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            CreatedByEmail = userEmail // Guardar email del creador
         };
 
         // Crear las 4 fases predeterminadas de OpenUP
@@ -107,6 +108,45 @@ public class ProjectService : IProjectService
         var query = _context.Projects
             .Include(p => p.Phases)
             .AsNoTracking();
+
+        if (!includeArchived)
+        {
+            query = query.Where(p => p.Status != ProjectStatus.Archived);
+        }
+
+        var projects = await query
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new ProjectListDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Code = p.Code,
+                StartDate = p.StartDate,
+                ResponsiblePerson = p.ResponsiblePerson,
+                Status = p.Status.ToString(),
+                CreatedAt = p.CreatedAt,
+                PhaseCount = p.Phases.Count
+            })
+            .ToListAsync();
+
+        return Result<List<ProjectListDto>>.Ok(projects);
+    }
+
+    public async Task<Result<List<ProjectListDto>>> GetUserProjectsAsync(string userEmail, bool includeArchived = false)
+    {
+        // Obtener IDs de proyectos donde el usuario es miembro (con invitación aceptada)
+        var memberProjectIds = await _context.ProjectMembers
+            .Where(m => m.UserEmail.ToLower() == userEmail.ToLower() && m.Status == MemberStatus.Accepted)
+            .Select(m => m.ProjectId)
+            .ToListAsync();
+
+        var query = _context.Projects
+            .Include(p => p.Phases)
+            .AsNoTracking()
+            .Where(p => 
+                (p.CreatedByEmail != null && p.CreatedByEmail.ToLower() == userEmail.ToLower()) || // Proyectos creados por el usuario
+                memberProjectIds.Contains(p.Id)   // Proyectos donde es miembro
+            );
 
         if (!includeArchived)
         {

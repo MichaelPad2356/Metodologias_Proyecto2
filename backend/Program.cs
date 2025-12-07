@@ -2,6 +2,9 @@ using backend.Data;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +13,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") 
         ?? "Data Source=openup.db"));
+
+// Configurar autenticación JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                builder.Configuration["Jwt:Key"] ?? "OpenUpSecretKey2024SuperSecureKeyForJWT!")),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "OpenUpApp",
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "OpenUpUsers",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 // Registrar servicios de aplicación
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -160,6 +181,258 @@ if (app.Environment.IsDevelopment())
         ");
     }
     catch { /* La tabla ya existe */ }
+
+    // HU-012: Crear tablas de Workflows si no existen
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Workflows (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                Description TEXT NOT NULL
+            );
+        ");
+
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS WorkflowSteps (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                ""Order"" INTEGER NOT NULL,
+                WorkflowId INTEGER NOT NULL,
+                FOREIGN KEY (WorkflowId) REFERENCES Workflows(Id) ON DELETE CASCADE
+            );
+        ");
+    }
+    catch { /* Tablas ya existen */ }
+
+    // HU-012: Agregar columnas de Workflow a Artifacts
+    if (!ColumnExists("Artifacts", "WorkflowId"))
+    {
+        context.Database.ExecuteSqlRaw("ALTER TABLE Artifacts ADD COLUMN WorkflowId INTEGER NULL REFERENCES Workflows(Id);");
+        Console.WriteLine("✓ Columna WorkflowId agregada");
+    }
+
+    if (!ColumnExists("Artifacts", "CurrentStepId"))
+    {
+        context.Database.ExecuteSqlRaw("ALTER TABLE Artifacts ADD COLUMN CurrentStepId INTEGER NULL REFERENCES WorkflowSteps(Id);");
+        Console.WriteLine("✓ Columna CurrentStepId agregada");
+    }
+
+    // Seed Workflows si está vacío
+    if (!context.Workflows.Any())
+    {
+        context.Database.ExecuteSqlRaw("INSERT INTO Workflows (Name, Description) VALUES ('Flujo de Aprobación Estándar', 'Flujo básico de revisión y aprobación');");
+        var workflowId = context.Database.SqlQueryRaw<int>("SELECT last_insert_rowid()").AsEnumerable().FirstOrDefault();
+        
+        if (workflowId > 0)
+        {
+            context.Database.ExecuteSqlRaw($"INSERT INTO WorkflowSteps (Name, \"Order\", WorkflowId) VALUES ('Borrador', 0, {workflowId});");
+            context.Database.ExecuteSqlRaw($"INSERT INTO WorkflowSteps (Name, \"Order\", WorkflowId) VALUES ('Revisión Técnica', 1, {workflowId});");
+            context.Database.ExecuteSqlRaw($"INSERT INTO WorkflowSteps (Name, \"Order\", WorkflowId) VALUES ('Aprobación Final', 2, {workflowId});");
+            Console.WriteLine("✓ Workflow por defecto creado");
+        }
+    }
+
+    // HU-018: Crear tablas de configuración del sistema
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS SystemRoles (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL UNIQUE,
+                Description TEXT,
+                PermissionsJson TEXT,
+                IsSystem INTEGER DEFAULT 0,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT
+            );
+        ");
+
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS CustomArtifactTypes (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                Description TEXT,
+                DefaultPhase TEXT,
+                IsMandatoryByDefault INTEGER DEFAULT 0,
+                CustomFieldsJson TEXT,
+                IsActive INTEGER DEFAULT 1,
+                CreatedAt TEXT NOT NULL
+            );
+        ");
+
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS CustomPhaseDefinitions (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                Description TEXT,
+                ""Order"" INTEGER NOT NULL,
+                MandatoryArtifactTypesJson TEXT,
+                IsActive INTEGER DEFAULT 1,
+                CreatedAt TEXT NOT NULL
+            );
+        ");
+
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ConfigurationHistory (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                EntityType TEXT NOT NULL,
+                EntityId INTEGER NOT NULL,
+                Action TEXT NOT NULL,
+                OldValuesJson TEXT,
+                NewValuesJson TEXT,
+                ChangedBy TEXT,
+                ChangedAt TEXT NOT NULL
+            );
+        ");
+        Console.WriteLine("✓ Tablas HU-018 creadas");
+    }
+    catch { /* Tablas ya existen */ }
+
+    // HU-019: Crear tabla de plantillas OpenUP
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS OpenUpTemplates (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                Description TEXT,
+                Version INTEGER DEFAULT 1,
+                IsDefault INTEGER DEFAULT 0,
+                IsActive INTEGER DEFAULT 1,
+                PhasesJson TEXT DEFAULT '[]',
+                RolesJson TEXT DEFAULT '[]',
+                ArtifactTypesJson TEXT DEFAULT '[]',
+                WorkflowsJson TEXT DEFAULT '[]',
+                CreatedBy TEXT,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT,
+                ParentTemplateId INTEGER,
+                FOREIGN KEY (ParentTemplateId) REFERENCES OpenUpTemplates(Id)
+            );
+        ");
+        Console.WriteLine("✓ Tabla HU-019 creada");
+    }
+    catch { /* Tabla ya existe */ }
+
+    // HU-025: Crear tabla de miembros del proyecto
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ProjectMembers (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ProjectId INTEGER NOT NULL,
+                UserEmail TEXT NOT NULL,
+                UserName TEXT,
+                Role TEXT NOT NULL,
+                Status TEXT NOT NULL,
+                InvitedAt TEXT NOT NULL,
+                AcceptedAt TEXT,
+                InvitedBy TEXT,
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id)
+            );
+        ");
+        Console.WriteLine("✓ Tabla HU-025 creada");
+    }
+    catch { /* Tabla ya existe */ }
+
+    // HU-020: Crear tabla de movimientos de entregables
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS DeliverableMovements (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                DeliverableId INTEGER NOT NULL,
+                FromPhaseId INTEGER NOT NULL,
+                ToPhaseId INTEGER NOT NULL,
+                Reason TEXT,
+                MovedBy TEXT,
+                MovedAt TEXT NOT NULL,
+                RequiredConfirmation INTEGER DEFAULT 0,
+                WarningsJson TEXT,
+                FOREIGN KEY (DeliverableId) REFERENCES Deliverables(Id)
+            );
+        ");
+        Console.WriteLine("✓ Tabla HU-020 creada");
+    }
+    catch { /* Tabla ya existe */ }
+
+    // HU-026: Crear tabla de cierres de proyecto
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ProjectClosures (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ProjectId INTEGER NOT NULL,
+                ClosedAt TEXT NOT NULL,
+                ClosedBy TEXT,
+                IsForcedClose INTEGER DEFAULT 0,
+                ForceCloseJustification TEXT,
+                ValidationResultJson TEXT,
+                ArtifactsSummaryJson TEXT,
+                TeamMembersJson TEXT,
+                ClosureDocumentPath TEXT,
+                FOREIGN KEY (ProjectId) REFERENCES Projects(Id)
+            );
+        ");
+        Console.WriteLine("✓ Tabla HU-026 creada");
+    }
+    catch { /* Tabla ya existe */ }
+
+    // Crear tabla Users para autenticación
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS Users (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                Email TEXT NOT NULL UNIQUE,
+                PasswordHash TEXT NOT NULL,
+                Role TEXT DEFAULT 'Usuario',
+                IsActive INTEGER DEFAULT 1,
+                CreatedAt TEXT NOT NULL,
+                LastLoginAt TEXT
+            );
+        ");
+        Console.WriteLine("✓ Tabla Users creada");
+    }
+    catch { /* Tabla ya existe */ }
+
+    // Agregar columna CreatedByEmail a Projects si no existe
+    try
+    {
+        var hasCreatedByEmail = context.Database.SqlQueryRaw<int>(
+            "SELECT COUNT(*) as Value FROM pragma_table_info('Projects') WHERE name = 'CreatedByEmail'"
+        ).First();
+        
+        if (hasCreatedByEmail == 0)
+        {
+            context.Database.ExecuteSqlRaw("ALTER TABLE Projects ADD COLUMN CreatedByEmail TEXT;");
+            Console.WriteLine("✓ Columna CreatedByEmail agregada a Projects");
+        }
+    }
+    catch { /* Columna ya existe */ }
+
+    // Seed roles del sistema si está vacío
+    if (!context.SystemRoles.Any())
+    {
+        var defaultRoles = new[]
+        {
+            ("Administrador", "Control total del sistema", true),
+            ("Product Owner", "Responsable del producto y priorización", true),
+            ("Scrum Master", "Facilitador del equipo", true),
+            ("Desarrollador", "Miembro del equipo de desarrollo", true),
+            ("Tester", "Responsable de pruebas", true),
+            ("Revisor", "Responsable de revisiones", true)
+        };
+
+        foreach (var (name, desc, isSystem) in defaultRoles)
+        {
+            context.Database.ExecuteSqlRaw(
+                $"INSERT INTO SystemRoles (Name, Description, IsSystem, CreatedAt) VALUES ('{name}', '{desc}', {(isSystem ? 1 : 0)}, '{DateTime.UtcNow:O}');");
+        }
+        Console.WriteLine("✓ Roles por defecto creados");
+    }
     
     app.MapOpenApi();
 }
@@ -182,6 +455,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseCors("AllowFrontend");
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

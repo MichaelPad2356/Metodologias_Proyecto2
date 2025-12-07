@@ -75,5 +75,12 @@ public class Artifact
     // HU-009: Campo para Documento de Cierre
     public string? ClosureChecklistJson { get; set; }
 
+    // HU-012: Asociación a Flujo de Trabajo
+    public int? WorkflowId { get; set; }
+    public Workflow? Workflow { get; set; }
+
+    public int? CurrentStepId { get; set; }
+    public WorkflowStep? CurrentStep { get; set; }
+
     public ICollection<ArtifactVersion> Versions { get; set; } = new List<ArtifactVersion>();
 }
