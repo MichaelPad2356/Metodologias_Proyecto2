@@ -1,0 +1,121 @@
+<!-- Closure Button - Solo visible para quienes tienen permiso -->
+<button *ngIf="canClose" class="btn btn-closure" (click)="openClosureModal()">
+  🔒 Cerrar Proyecto
+</button>
+
+<!-- Mensaje para usuarios sin permiso -->
+<div *ngIf="!canClose && error" class="alert alert-warning">
+  {{ error }}
+</div>
+
+<!-- Closure Modal -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔒 Cerrar Proyecto</h3>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success">
+        ✅ {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-error">
+        ❌ {{ error }}
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading">
+        <p>Validando requisitos de cierre...</p>
+      </div>
+
+      <!-- Validation Results -->
+      <div *ngIf="!loading && validation" class="validation-section">
+        <div class="project-name">
+          <strong>Proyecto:</strong> {{ projectName || validation.projectName }}
+        </div>
+
+        <!-- Status Badge -->
+        <div class="status-banner" [ngClass]="getOverallStatus()">
+          <ng-container [ngSwitch]="getOverallStatus()">
+            <span *ngSwitchCase="'ready'">✅ Listo para cerrar</span>
+            <span *ngSwitchCase="'warning'">⚠️ Algunos requisitos no cumplidos</span>
+            <span *ngSwitchDefault>❌ No se puede cerrar</span>
+          </ng-container>
+        </div>
+
+        <!-- Checklist -->
+        <div class="checklist">
+          <h4>Checklist de Cierre</h4>
+          <div *ngFor="let check of validation.checks" class="check-item" [class.passed]="check.passed">
+            <span class="check-icon">{{ getCheckIcon(check.passed) }}</span>
+            <div class="check-content">
+              <div class="check-name">{{ check.name }}</div>
+              <div class="check-description">{{ check.description }}</div>
+              <div *ngIf="check.details" class="check-details">{{ check.details }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Missing Requirements -->
+        <div *ngIf="validation.missingRequirements.length > 0" class="missing-section">
+          <h4>⚠️ Requisitos Faltantes</h4>
+          <ul>
+            <li *ngFor="let req of validation.missingRequirements">{{ req }}</li>
+          </ul>
+        </div>
+
+        <!-- Close Form -->
+        <div class="close-form">
+          <div class="form-group">
+            <label>Cerrado por *</label>
+            <input type="text" [(ngModel)]="closedBy" placeholder="Su nombre">
+          </div>
+          
+          <div class="form-group">
+            <label>Notas de cierre</label>
+            <textarea [(ngModel)]="closureNotes" placeholder="Observaciones opcionales..."></textarea>
+          </div>
+
+          <!-- Force Close Section -->
+          <div *ngIf="!validation.isValid" class="force-close-section">
+            <h4>⚡ Cierre Forzado</h4>
+            <p class="warning-text">
+              El proyecto no cumple todos los requisitos. Si desea forzar el cierre, 
+              proporcione una justificación:
+            </p>
+            <div class="form-group">
+              <label>Justificación del cierre forzado *</label>
+              <textarea [(ngModel)]="forceJustification" 
+                        placeholder="Explique por qué se debe cerrar el proyecto sin cumplir los requisitos...">
+              </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" *ngIf="validation && !successMessage">
+      <button class="btn btn-secondary" (click)="closeModal()" [disabled]="closing">
+        Cancelar
+      </button>
+      
+      <button *ngIf="validation.isValid" 
+              class="btn btn-success" 
+              (click)="closeProject()" 
+              [disabled]="closing || !closedBy.trim()">
+        {{ closing ? 'Cerrando...' : '🔒 Cerrar Proyecto' }}
+      </button>
+      
+      <button *ngIf="!validation.isValid" 
+              class="btn btn-warning" 
+              (click)="forceCloseProject()" 
+              [disabled]="closing || !closedBy.trim() || !forceJustification.trim()">
+        {{ closing ? 'Cerrando...' : '⚡ Forzar Cierre' }}
+      </button>
+    </div>
+  </div>
+</div>

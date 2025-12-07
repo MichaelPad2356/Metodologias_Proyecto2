@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AuthService } from './services/auth.service';
+import { PermissionService } from './services/permission.service';
+import { User } from './models/auth.model';
 
 @Component({
   selector: 'app-home',
@@ -38,6 +41,20 @@ import { RouterModule } from '@angular/router';
           <p>Registra y monitorea los microincrementos de tus entregas</p>
           <button class="feature-btn">Ver Microincrementos</button>
         </div>
+
+        <div class="feature-card" routerLink="/configuration">
+          <div class="feature-icon">⚙️</div>
+          <h3>Configuración Global</h3>
+          <p>Administra roles, etapas, tipos de artefactos y campos personalizados</p>
+          <button class="feature-btn">Ir a Configuración</button>
+        </div>
+
+        <div class="feature-card" routerLink="/templates">
+          <div class="feature-icon">📋</div>
+          <h3>Plantillas OpenUP</h3>
+          <p>Gestiona plantillas versionadas para tus proyectos</p>
+          <button class="feature-btn">Ver Plantillas</button>
+        </div>
       </div>
 
       <div class="quick-actions">
@@ -48,6 +65,12 @@ import { RouterModule } from '@angular/router';
           </a>
           <a routerLink="/microincrements/new" class="action-link secondary">
             📝 Registrar Microincremento
+          </a>
+          <a routerLink="/configuration" class="action-link secondary">
+            ⚙️ Configuración
+          </a>
+          <a routerLink="/templates" class="action-link secondary">
+            📋 Plantillas
           </a>
         </div>
       </div>
@@ -214,4 +237,20 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class HomeComponent {}
+export class HomeComponent implements OnInit {
+  currentUser: User | null = null;
+
+  constructor(
+    private authService: AuthService,
+    private permissionService: PermissionService
+  ) {}
+
+  ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      if (user) {
+        this.permissionService.setSystemRole(user.role);
+      }
+    });
+  }
+}

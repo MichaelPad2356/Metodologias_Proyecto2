@@ -5,32 +5,202 @@ export enum ArtifactStatus {
 }
 
 export enum ArtifactType {
+  // Inception
   VisionDocument,
   StakeholderList,
   InitialRiskList,
   InitialProjectPlan,
   HighLevelUseCaseModel,
+  
+  // Elaboration
+  DetailedUseCaseModel,
+  DomainModel,
+  SupplRequirements,
+  NonFunctionalReqs,
+  ArchitectureDoc,
+  TechnicalDiagrams,
+  IterationPlan,
+  UIPrototype,
+
+  // Construction
+  DetailedDesignModel,
+  SourceCode,
+  TestCases,
+  TestResults,
+  IterationLog,
+
+  // Transition
+  UserManual,
+  TechnicalManual,
+  DeploymentPlan,
+  ClosureDoc,
+  FinalBuild,
+  BetaTestReport,
+
+  // Missing types
+  SoftwareArchitectureDocument,
+  RefinedRiskList,
+  UnitTestReport,
+  IntegrationTestReport,
+  UserGuide,
+
   Other,
 }
+
+// Mapeo de tipos de artefactos a nombres legibles en español
+export const ArtifactTypeLabels: { [key: number]: string } = {
+  [ArtifactType.VisionDocument]: 'Documento de Visión',
+  [ArtifactType.StakeholderList]: 'Lista de Interesados',
+  [ArtifactType.InitialRiskList]: 'Lista de Riesgos Inicial',
+  [ArtifactType.InitialProjectPlan]: 'Plan de Proyecto Inicial',
+  [ArtifactType.HighLevelUseCaseModel]: 'Modelo de Casos de Uso de Alto Nivel',
+  [ArtifactType.SoftwareArchitectureDocument]: 'Documento de Arquitectura de Software',
+  [ArtifactType.DetailedUseCaseModel]: 'Modelo de Casos de Uso Detallado',
+  [ArtifactType.RefinedRiskList]: 'Lista de Riesgos Refinada',
+  [ArtifactType.IterationPlan]: 'Plan de Iteración',
+  [ArtifactType.SourceCode]: 'Código Fuente',
+  [ArtifactType.UnitTestReport]: 'Reporte de Pruebas Unitarias',
+  [ArtifactType.IntegrationTestReport]: 'Reporte de Pruebas de Integración',
+  [ArtifactType.UserGuide]: 'Guía de Usuario',
+  [ArtifactType.UserManual]: 'Manual de Usuario',
+  [ArtifactType.TechnicalManual]: 'Manual Técnico',
+  [ArtifactType.DeploymentPlan]: 'Plan de Despliegue',
+  [ArtifactType.ClosureDoc]: 'Documento de Cierre',
+  [ArtifactType.FinalBuild]: 'Build Final',
+  [ArtifactType.BetaTestReport]: 'Reporte de Pruebas Beta',
+  [ArtifactType.Other]: 'Otro',
+};
+
+// Artefactos obligatorios por fase
+export const MandatoryArtifactsByPhase: { [phase: string]: ArtifactType[] } = {
+  'Inicio': [
+    ArtifactType.VisionDocument,
+    ArtifactType.StakeholderList,
+    ArtifactType.InitialRiskList,
+  ],
+  'Elaboración': [
+    ArtifactType.SoftwareArchitectureDocument,
+    ArtifactType.DetailedUseCaseModel,
+  ],
+  'Construcción': [
+    ArtifactType.SourceCode,
+    ArtifactType.UnitTestReport,
+  ],
+  'Transición': [
+    ArtifactType.UserManual,
+    ArtifactType.TechnicalManual,
+    ArtifactType.DeploymentPlan,
+    ArtifactType.ClosureDoc,
+    ArtifactType.FinalBuild,
+    ArtifactType.BetaTestReport,
+  ],
+};
+
+// Interface para item de checklist de cierre
+export interface ClosureChecklistItem {
+  id: number;
+  description: string;
+  isMandatory: boolean;
+  isCompleted: boolean;
+  completedDate?: string;
+  completedBy?: string;
+  notes?: string;
+}
+
+// Checklist por defecto para documento de cierre
+export const DefaultClosureChecklist: ClosureChecklistItem[] = [
+  { id: 1, description: 'Manual de Usuario entregado y aprobado', isMandatory: true, isCompleted: false },
+  { id: 2, description: 'Manual Técnico entregado y aprobado', isMandatory: true, isCompleted: false },
+  { id: 3, description: 'Plan de Despliegue ejecutado exitosamente', isMandatory: true, isCompleted: false },
+  { id: 4, description: 'Build Final generado y verificado', isMandatory: true, isCompleted: false },
+  { id: 5, description: 'Pruebas Beta completadas con resultados aceptables', isMandatory: true, isCompleted: false },
+  { id: 6, description: 'Capacitación a usuarios finales completada', isMandatory: false, isCompleted: false },
+  { id: 7, description: 'Documentación de soporte entregada', isMandatory: false, isCompleted: false },
+  { id: 8, description: 'Ambiente de producción configurado', isMandatory: true, isCompleted: false },
+  { id: 9, description: 'Plan de contingencia definido', isMandatory: false, isCompleted: false },
+  { id: 10, description: 'Aceptación formal del cliente obtenida', isMandatory: true, isCompleted: false },
+];
 
 export interface ArtifactVersion {
   id: number;
   versionNumber: number;
   author: string;
+  observations?: string;  // HU-010: Descripción de cambios
   content?: string;
   originalFileName?: string;
+  repositoryUrl?: string;
   createdAt: Date;
   downloadUrl?: string;
+  fileSize?: number;
+}
+
+// HU-010: Interface para comparación de versiones
+export interface VersionComparison {
+  version1: ArtifactVersion;
+  version2: ArtifactVersion;
+  differences: string[];
+}
+
+// HU-010: Interface para historial exportable
+export interface VersionHistoryExport {
+  artifactType: string;
+  projectName: string;
+  phaseName: string;
+  exportedAt: Date;
+  versions: VersionHistoryItem[];
+}
+
+export interface VersionHistoryItem {
+  versionNumber: number;
+  author: string;
+  observations?: string;
+  createdAt: Date;
+  fileName?: string;
+  fileSize?: number;
 }
 
 export interface Artifact {
   id: number;
-  type: ArtifactType;
-  typeName: string;
-  projectPhaseId: number;
+  name: string;
+  description: string;
   isMandatory: boolean;
-  status: ArtifactStatus;
+  type: ArtifactType | string;  // Puede ser número o string del enum
+  typeName: string;
+  author: string;
+  projectPhaseId: number;
+  status: ArtifactStatus | string;  // Puede ser número o string del enum
   statusName: string;
+  assignedTo?: string;
   createdAt: Date;
-  versions: ArtifactVersion[];
+  versionCount: number;  // Número de versiones
+  latestVersion?: ArtifactVersion;  // Última versión
+  versions?: ArtifactVersion[];  // Array de versiones (opcional, para carga adicional)
+  
+  // Campos específicos para Build Final (HU-009)
+  buildIdentifier?: string;
+  buildDownloadUrl?: string;
+  
+  // Campos para Documento de Cierre (HU-009)
+  closureChecklistJson?: string;
+  closureChecklist?: ClosureChecklistItem[];
+
+  // HU-012: Campos de Flujo de Trabajo
+  workflowId?: number;
+  workflowName?: string;
+  currentStepId?: number;
+  currentStepName?: string;
+}
+
+export interface WorkflowStep {
+  id: number;
+  name: string;
+  order: number;
+  workflowId: number;
+}
+
+export interface Workflow {
+  id: number;
+  name: string;
+  description: string;
+  steps: WorkflowStep[];
 }

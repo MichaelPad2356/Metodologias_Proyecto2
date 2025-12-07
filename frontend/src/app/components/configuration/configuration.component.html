@@ -1,0 +1,348 @@
+<div class="configuration-container">
+  <header class="page-header">
+    <h1>⚙️ Configuración Global</h1>
+    <p>Administre roles, etapas, tipos de artefactos y campos personalizados</p>
+  </header>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    ✅ {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'roles'" (click)="setActiveTab('roles')">
+      👤 Roles
+    </button>
+    <button [class.active]="activeTab === 'stages'" (click)="setActiveTab('stages')">
+      📊 Etapas
+    </button>
+    <button [class.active]="activeTab === 'artifactTypes'" (click)="setActiveTab('artifactTypes')">
+      📄 Tipos de Artefactos
+    </button>
+    <button [class.active]="activeTab === 'customFields'" (click)="setActiveTab('customFields')">
+      🔧 Campos Personalizados
+    </button>
+    <button [class.active]="activeTab === 'versions'" (click)="setActiveTab('versions')">
+      📜 Versiones
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <p>Cargando configuración...</p>
+  </div>
+
+  <!-- Roles Tab -->
+  <div *ngIf="!loading && activeTab === 'roles'" class="tab-content">
+    <div class="section-header">
+      <h2>Roles del Sistema</h2>
+      <button class="btn btn-primary" (click)="openCreateModal('role')">+ Nuevo Rol</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Sistema</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles">
+          <td><strong>{{ role.name }}</strong></td>
+          <td>{{ role.description }}</td>
+          <td>
+            <span [class]="role.isSystem ? 'badge badge-system' : 'badge badge-custom'">
+              {{ role.isSystem ? 'Sistema' : 'Personalizado' }}
+            </span>
+          </td>
+          <td>{{ formatDate(role.createdAt) }}</td>
+          <td>
+            <button class="btn btn-sm" (click)="openEditModal('role', role)" [disabled]="role.isSystem">
+              ✏️
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteItem('role', role.id)" [disabled]="role.isSystem">
+              🗑️
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="roles.length === 0">
+          <td colspan="5" class="empty-message">No hay roles definidos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Stages Tab -->
+  <div *ngIf="!loading && activeTab === 'stages'" class="tab-content">
+    <div class="section-header">
+      <h2>Etapas del Proyecto</h2>
+      <button class="btn btn-primary" (click)="openCreateModal('stage')">+ Nueva Etapa</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Sistema</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stage of stages">
+          <td>{{ stage.order }}</td>
+          <td><strong>{{ stage.name }}</strong></td>
+          <td>{{ stage.description }}</td>
+          <td>
+            <span [class]="stage.isSystem ? 'badge badge-system' : 'badge badge-custom'">
+              {{ stage.isSystem ? 'Sistema' : 'Personalizado' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm" (click)="openEditModal('stage', stage)" [disabled]="stage.isSystem">
+              ✏️
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteItem('stage', stage.id)" [disabled]="stage.isSystem">
+              🗑️
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="stages.length === 0">
+          <td colspan="5" class="empty-message">No hay etapas definidas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Artifact Types Tab -->
+  <div *ngIf="!loading && activeTab === 'artifactTypes'" class="tab-content">
+    <div class="section-header">
+      <h2>Tipos de Artefactos</h2>
+      <button class="btn btn-primary" (click)="openCreateModal('artifactType')">+ Nuevo Tipo</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Obligatorio</th>
+          <th>Sistema</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let type of artifactTypes">
+          <td><strong>{{ type.name }}</strong></td>
+          <td>{{ type.description }}</td>
+          <td>
+            <span [class]="type.defaultMandatory ? 'badge badge-required' : 'badge'">
+              {{ type.defaultMandatory ? 'Sí' : 'No' }}
+            </span>
+          </td>
+          <td>
+            <span [class]="type.isSystem ? 'badge badge-system' : 'badge badge-custom'">
+              {{ type.isSystem ? 'Sistema' : 'Personalizado' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm" (click)="openEditModal('artifactType', type)" [disabled]="type.isSystem">
+              ✏️
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteItem('artifactType', type.id)" [disabled]="type.isSystem">
+              🗑️
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="artifactTypes.length === 0">
+          <td colspan="5" class="empty-message">No hay tipos de artefactos definidos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Custom Fields Tab -->
+  <div *ngIf="!loading && activeTab === 'customFields'" class="tab-content">
+    <div class="section-header">
+      <h2>Campos Personalizados</h2>
+      <button class="btn btn-primary" (click)="openCreateModal('customField')">+ Nuevo Campo</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Requerido</th>
+          <th>Tipo Artefacto</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let field of customFields">
+          <td><strong>{{ field.name }}</strong></td>
+          <td>{{ field.fieldType }}</td>
+          <td>
+            <span [class]="field.isRequired ? 'badge badge-required' : 'badge'">
+              {{ field.isRequired ? 'Sí' : 'No' }}
+            </span>
+          </td>
+          <td>{{ field.artifactTypeId || 'Todos' }}</td>
+          <td>
+            <button class="btn btn-sm" (click)="openEditModal('customField', field)">✏️</button>
+            <button class="btn btn-sm btn-danger" (click)="deleteItem('customField', field.id)">🗑️</button>
+          </td>
+        </tr>
+        <tr *ngIf="customFields.length === 0">
+          <td colspan="5" class="empty-message">No hay campos personalizados definidos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Versions Tab -->
+  <div *ngIf="!loading && activeTab === 'versions'" class="tab-content">
+    <div class="section-header">
+      <h2>Versiones de Configuración</h2>
+      <button class="btn btn-primary" (click)="openCreateModal('version')">💾 Guardar Versión Actual</button>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Versión</th>
+          <th>Descripción</th>
+          <th>Creado Por</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let version of versions">
+          <td><strong>v{{ version.versionNumber }}</strong></td>
+          <td>{{ version.description }}</td>
+          <td>{{ version.createdBy }}</td>
+          <td>{{ formatDate(version.createdAt) }}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" (click)="restoreVersion(version.id)">
+              🔄 Restaurar
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="versions.length === 0">
+          <td colspan="5" class="empty-message">No hay versiones guardadas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ getModalTitle() }}</h3>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Role Form -->
+        <ng-container *ngIf="modalType === 'role'">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="formData.name" placeholder="Nombre del rol" required>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="formData.description" placeholder="Descripción del rol"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Permisos (JSON)</label>
+            <textarea [(ngModel)]="formData.permissions" placeholder='["read", "write", "delete"]'></textarea>
+          </div>
+        </ng-container>
+
+        <!-- Stage Form -->
+        <ng-container *ngIf="modalType === 'stage'">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="formData.name" placeholder="Nombre de la etapa" required>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="formData.description" placeholder="Descripción de la etapa"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Orden *</label>
+            <input type="number" [(ngModel)]="formData.order" min="1" required>
+          </div>
+        </ng-container>
+
+        <!-- Artifact Type Form -->
+        <ng-container *ngIf="modalType === 'artifactType'">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="formData.name" placeholder="Nombre del tipo" required>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="formData.description" placeholder="Descripción del tipo"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="formData.defaultMandatory">
+              Obligatorio por defecto
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Etapas Aplicables (JSON array de IDs)</label>
+            <input type="text" [(ngModel)]="formData.applicableStages" placeholder="[1, 2, 3]">
+          </div>
+        </ng-container>
+
+        <!-- Custom Field Form -->
+        <ng-container *ngIf="modalType === 'customField'">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="formData.name" placeholder="Nombre del campo" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Campo *</label>
+            <select [(ngModel)]="formData.fieldType" required>
+              <option *ngFor="let type of fieldTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="formData.fieldType === 'Dropdown'">
+            <label>Opciones (JSON array)</label>
+            <input type="text" [(ngModel)]="formData.options" placeholder='["Opción 1", "Opción 2"]'>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="formData.isRequired">
+              Campo requerido
+            </label>
+          </div>
+        </ng-container>
+
+        <!-- Version Form -->
+        <ng-container *ngIf="modalType === 'version'">
+          <div class="form-group">
+            <label>Creado por *</label>
+            <input type="text" [(ngModel)]="formData.createdBy" placeholder="Su nombre" required>
+          </div>
+          <div class="form-group">
+            <label>Descripción *</label>
+            <textarea [(ngModel)]="formData.description" placeholder="Descripción de los cambios" required></textarea>
+          </div>
+        </ng-container>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveItem()">
+          {{ modalType === 'version' ? 'Guardar Versión' : (modalMode === 'create' ? 'Crear' : 'Guardar') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

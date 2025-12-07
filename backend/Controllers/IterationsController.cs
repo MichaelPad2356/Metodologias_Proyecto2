@@ -1,11 +1,13 @@
 using backend.Contracts;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/projects/{projectId}/iterations")]
+[Authorize]
 public class IterationsController : ControllerBase
 {
     private readonly IIterationService _iterationService;

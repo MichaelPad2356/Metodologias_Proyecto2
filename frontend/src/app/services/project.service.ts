@@ -133,4 +133,13 @@ export class ProjectService {
   getProjectProgress(projectId: number): Observable<any> {
     return this.http.get<any>(`/api/planning/progreso/${projectId}`);
   }
+
+  /**
+   * Actualiza el estado de una fase
+   */
+  updatePhaseStatus(phaseId: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/phases/${phaseId}/status`, JSON.stringify(status), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

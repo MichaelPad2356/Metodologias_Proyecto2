@@ -1,0 +1,92 @@
+<div class="workflows-page">
+  <div class="workflows-header">
+    <h1>Flujos de Trabajo</h1>
+    <button class="btn-primary" (click)="openModal()">
+      + Nuevo Flujo
+    </button>
+  </div>
+
+  <div class="workflows-grid">
+    <div *ngFor="let workflow of workflows" class="workflow-card">
+      <div class="workflow-card-header">
+        <h3>{{ workflow.name }}</h3>
+        <div class="workflow-actions">
+          <button (click)="openModal(workflow)" class="btn-edit">✏️</button>
+          <button (click)="deleteWorkflow(workflow.id!)" class="btn-delete">🗑️</button>
+        </div>
+      </div>
+      <p class="workflow-description">{{ workflow.description }}</p>
+      <div class="workflow-steps">
+        <strong>Pasos ({{ workflow.steps.length || 0 }}):</strong>
+        <ol>
+          <li *ngFor="let step of workflow.steps">{{ step.name }}</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingWorkflow ? 'Editar Flujo' : 'Nuevo Flujo' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Nombre del Flujo *</label>
+          <input
+            type="text"
+            [(ngModel)]="formData.name"
+            name="name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea
+            [(ngModel)]="formData.description"
+            name="description"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Pasos del Flujo *</label>
+          <div *ngFor="let step of formData.steps; let i = index" class="step-input-row">
+            <span class="step-number">{{ i + 1 }}.</span>
+            <input
+              type="text"
+              [(ngModel)]="step.name"
+              [name]="'step-' + i"
+              placeholder="Nombre del paso"
+              required
+            />
+            <button
+              *ngIf="formData.steps.length > 1"
+              type="button"
+              class="btn-remove-step"
+              (click)="removeStep(i)"
+            >
+              ×
+            </button>
+          </div>
+          <button type="button" class="btn-add-step" (click)="addStep()">
+            + Agregar Paso
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary">
+            {{ editingWorkflow ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

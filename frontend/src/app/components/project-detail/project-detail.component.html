@@ -147,25 +147,64 @@
                     {{ getPhaseStatusLabel(phase.status) }}
                   </span>
                 </div>
+                <div class="phase-actions ms-auto">
+                  @if (phase.status === 'NotStarted') {
+                    <button class="btn btn-sm btn-success" (click)="updatePhaseStatus(phase, 'InProgress')">
+                      ▶ Iniciar
+                    </button>
+                  }
+                  @if (phase.status === 'InProgress') {
+                    <button class="btn btn-sm btn-primary" (click)="updatePhaseStatus(phase, 'Completed')">
+                      ✅ Completar
+                    </button>
+                  }
+                </div>
               </div>
               <!-- ARTEFACTOS PARA ESTA FASE -->
               <div class="artifacts-for-phase">
-                <app-artifacts-manager [phaseId]="phase.id"></app-artifacts-manager>
+                @if (phase.name === 'Transición') {
+                  <!-- Botón especial para fase de Transición (HU-009) -->
+                  <div class="transition-phase-card">
+                    <div class="transition-info">
+                      <h4>📋 Artefactos de Cierre</h4>
+                      <p>Gestiona los documentos de entrega: Manual de Usuario, Manual Técnico, Plan de Despliegue, Build Final, Pruebas Beta y Documento de Cierre.</p>
+                    </div>
+                    <button class="btn btn-primary btn-transition" [routerLink]="['/projects', project.id, 'transition']">
+                      🚀 Gestionar Artefactos de Transición
+                    </button>
+                  </div>
+                } @else {
+                  <app-artifacts-manager [phaseId]="phase.id"></app-artifacts-manager>
+                }
               </div>
             </div>
           }
         </div>
       </div>
+
+      <!-- Miembros del Proyecto (HU-025) -->
+      <div class="card members-card">
+        <app-project-members [projectId]="project.id"></app-project-members>
+      </div>
     </div>
     <!-- Acciones -->
-    @if (project.status !== 'Archived') {
+    @if (project.status !== 'Archived' && project.status !== 'Closed') {
       <div class="actions-bar">
+        <!-- Cierre de Proyecto (HU-026) -->
+        <app-project-closure 
+          [projectId]="project.id" 
+          [projectName]="project.name"
+          (projectClosed)="onProjectClosed()">
+        </app-project-closure>
+        
         <button class="btn btn-secondary" (click)="confirmArchive()">
           📦 Archivar Proyecto
         </button>
-        <button class="btn btn-danger" (click)="confirmDelete()">
-          🗑️ Eliminar Permanentemente
-        </button>
+        @if (canDelete) {
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            🗑️ Eliminar Permanentemente
+          </button>
+        }
       </div>
     }
     @if (project.status === 'Archived') {
@@ -173,9 +212,11 @@
         <button class="btn btn-primary" (click)="confirmUnarchive()">
           📤 Desarchivar Proyecto
         </button>
-        <button class="btn btn-danger" (click)="confirmDelete()">
-          🗑️ Eliminar Permanentemente
-        </button>
+        @if (canDelete) {
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            🗑️ Eliminar Permanentemente
+          </button>
+        }
       </div>
     }
   </div>

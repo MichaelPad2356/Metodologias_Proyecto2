@@ -37,4 +37,8 @@ export class PlanningService {
     }
     return this.http.get<any>(`${this.apiUrl}/velocidad-historica`, { params });
   }
+
+  getProgreso(projectId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/progreso/${projectId}`);
+  }
 }

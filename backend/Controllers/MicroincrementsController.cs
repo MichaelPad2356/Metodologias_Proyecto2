@@ -2,11 +2,13 @@ using backend.Contracts;
 using backend.Services;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class MicroincrementsController : ControllerBase
 {
     private readonly IMicroincrementService _service;

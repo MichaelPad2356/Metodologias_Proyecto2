@@ -79,13 +79,15 @@
                   📤 Desarchivar
                 </button>
               }
-              <button
-                class="btn btn-danger btn-sm"
-                (click)="confirmDelete(project, $event)"
-                title="Eliminar proyecto"
-                >
-                🗑️ Eliminar
-              </button>
+              @if (canDelete) {
+                <button
+                  class="btn btn-danger btn-sm"
+                  (click)="confirmDelete(project, $event)"
+                  title="Eliminar proyecto"
+                  >
+                  🗑️ Eliminar
+                </button>
+              }
             </div>
           </div>
         }

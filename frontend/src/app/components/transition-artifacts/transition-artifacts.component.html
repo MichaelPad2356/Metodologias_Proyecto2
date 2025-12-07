@@ -1,0 +1,574 @@
+<div class="transition-container">
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h2>📋 Artefactos de Fase de Transición</h2>
+      <p>Gestiona los documentos y entregables de cierre del proyecto</p>
+    </div>
+    <button class="btn btn-primary" (click)="validateClosure()" [disabled]="loading">
+      🔍 Validar Cierre
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  @if (loading) {
+    <div class="loading">
+      <span class="spinner"></span> Cargando artefactos...
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (error) {
+    <div class="error-message">
+      ❌ {{ error }}
+    </div>
+  }
+
+  <!-- RESUMEN DE ESTADO -->
+  @if (!loading && !error) {
+    <div class="status-summary">
+      <div class="summary-card" [class.complete]="(missingMandatory.length || 0) === 0">
+        <div class="summary-icon">{{ (missingMandatory.length || 0) === 0 ? '✅' : '⚠️' }}</div>
+        <div class="summary-content">
+          <h4>Artefactos Obligatorios</h4>
+          @if ((missingMandatory.length || 0) === 0) {
+            <p>Todos los artefactos obligatorios están registrados</p>
+          } @else {
+            <p>Faltan {{ missingMandatory.length || 0 }} artefactos obligatorios</p>
+            <ul class="missing-list">
+              @for (missing of missingMandatory; track missing.type) {
+                <li>{{ missing.typeName }}</li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+      
+      <div class="summary-card" [class.complete]="canClose">
+        <div class="summary-icon">{{ canClose ? '🎉' : '🔒' }}</div>
+        <div class="summary-content">
+          <h4>Estado de Cierre</h4>
+          @if (canClose) {
+            <p>✅ El proyecto puede ser cerrado</p>
+          } @else {
+            <p>Requisitos pendientes:</p>
+            <ul class="requirements-list">
+              @if ((missingMandatory.length || 0) > 0) {
+                <li>❌ Faltan {{ missingMandatory.length }} artefactos obligatorios</li>
+              }
+              @if (getPendingApprovalCount() > 0) {
+                <li>⏳ {{ getPendingApprovalCount() }} artefactos pendientes de aprobación</li>
+              }
+              @if (!hasClosureChecklist()) {
+                <li>📋 Completar checklist del Documento de Cierre</li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- LISTA DE ARTEFACTOS -->
+  @if (!loading && !error) {
+    <div class="artifacts-grid">
+      @for (typeInfo of transitionTypes; track typeInfo.type) {
+        @let artifact = getArtifactByType(typeInfo.type);
+        <div class="artifact-card" [class.has-artifact]="artifact">
+          <div class="artifact-header">
+            <span class="artifact-icon">{{ typeInfo.icon }}</span>
+            <h3>{{ typeInfo.label }}</h3>
+            @if (artifact) {
+              <span class="status-badge" [ngClass]="getStatusClass(artifact.status)">
+                {{ getStatusLabel(artifact.status) }}
+              </span>
+            }
+          </div>
+
+          @if (artifact) {
+            <!-- Artefacto existe -->
+            <div class="artifact-content">
+              <div class="artifact-info">
+                <p><strong>Versiones:</strong> {{ artifact.versionCount || 0 }}</p>
+                <p><strong>Última actualización:</strong> {{ artifact.latestVersion?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                <p><strong>Autor:</strong> {{ artifact.latestVersion?.author }}</p>
+                
+                <!-- Info específica de Build Final -->
+                @if (typeInfo.type === ArtifactType.FinalBuild && artifact.buildIdentifier) {
+                  <p><strong>Build ID:</strong> {{ artifact.buildIdentifier }}</p>
+                  @if (artifact.buildDownloadUrl) {
+                    <p><strong>Descarga:</strong> <a [href]="artifact.buildDownloadUrl" target="_blank">🔗 Enlace</a></p>
+                  }
+                }
+              </div>
+
+              <!-- Botones de acciones -->
+              <div class="artifact-actions">
+                <button class="btn btn-sm btn-secondary" (click)="openVersionModal(artifact)">
+                  ➕ Nueva Versión
+                </button>
+                
+                <!-- HU-010: Botón de historial de versiones -->
+                <button class="btn btn-sm btn-info" (click)="openHistoryModal(artifact)">
+                  📜 Historial
+                </button>
+                
+                @if (typeInfo.type === ArtifactType.ClosureDoc) {
+                  <button class="btn btn-sm btn-info" (click)="openChecklistModal(artifact)">
+                    📋 Ver Checklist
+                  </button>
+                }
+                
+                @if (typeInfo.type === ArtifactType.FinalBuild) {
+                  <button class="btn btn-sm btn-info" (click)="openBuildModal(artifact)">
+                    ⚙️ Editar Build
+                  </button>
+                }
+
+                <!-- Cambiar estado -->
+                <div class="status-dropdown">
+                  <select (change)="changeStatus(artifact, $any($event.target).value)">
+                    <option value="Pending" [selected]="artifact.status === 'Pending' || artifact.status === 0">Pendiente</option>
+                    <option value="InReview" [selected]="artifact.status === 'InReview' || artifact.status === 1">En Revisión</option>
+                    <option value="Approved" [selected]="artifact.status === 'Approved' || artifact.status === 2">Aprobado</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Lista de versiones (resumen) -->
+              @if (artifact.latestVersion) {
+                <div class="versions-list">
+                  <h4>📌 Última versión: v{{ artifact.latestVersion.versionNumber }}</h4>
+                  <div class="version-item">
+                    <span class="version-author">{{ artifact.latestVersion.author }}</span>
+                    <span class="version-date">{{ artifact.latestVersion.createdAt | date:'dd/MM/yy HH:mm' }}</span>
+                    @if (artifact.latestVersion.observations) {
+                      <span class="version-observations">"{{ artifact.latestVersion.observations }}"</span>
+                    }
+                  </div>
+                  @if ((artifact.versionCount || 0) > 1) {
+                    <p class="more-versions">+ {{ (artifact.versionCount || 0) - 1 }} versiones anteriores</p>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- Artefacto no existe -->
+            <div class="no-artifact">
+              <p>No se ha registrado este artefacto</p>
+              <button class="btn btn-primary" (click)="openCreateModal(typeInfo.type)">
+                ➕ Crear Artefacto
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- MODAL: Crear Artefacto -->
+@if (showArtifactModal) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Crear {{ getTypeLabel(selectedArtifactType!) }}</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Autor *</label>
+          <input type="text" [(ngModel)]="newArtifactForm.author" class="form-control" placeholder="Nombre del autor">
+        </div>
+
+        <div class="form-group">
+          <label>Contenido / Descripción</label>
+          <textarea [(ngModel)]="newArtifactForm.content" class="form-control" rows="4" 
+                    placeholder="Descripción o contenido del artefacto"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Archivo adjunto</label>
+          <input type="file" (change)="onFileSelected($event, 'artifact')" class="form-control">
+        </div>
+
+        <!-- Campos específicos para Build Final -->
+        @if (selectedArtifactType === ArtifactType.FinalBuild) {
+          <div class="form-group">
+            <label>Identificador del Build *</label>
+            <input type="text" [(ngModel)]="newArtifactForm.buildIdentifier" class="form-control" 
+                   placeholder="Ej: v1.0.0-release">
+          </div>
+          <div class="form-group">
+            <label>URL de Descarga</label>
+            <input type="url" [(ngModel)]="newArtifactForm.buildDownloadUrl" class="form-control" 
+                   placeholder="https://...">
+          </div>
+        }
+
+        <!-- Checklist para Documento de Cierre -->
+        @if (selectedArtifactType === ArtifactType.ClosureDoc) {
+          <div class="checklist-section">
+            <h4>Checklist de Criterios de Cierre</h4>
+            <div class="progress-bar-container">
+              <div class="progress-bar" [style.width]="getMandatoryChecklistProgress() + '%'"></div>
+            </div>
+            <p class="progress-text">Obligatorios: {{ getMandatoryChecklistProgress() }}%</p>
+            
+            <div class="checklist-items">
+              @for (item of closureChecklist; track item.id) {
+                <div class="checklist-item" [class.mandatory]="item.isMandatory" [class.completed]="item.isCompleted">
+                  <label>
+                    <input type="checkbox" [checked]="item.isCompleted" (change)="toggleChecklistItem(item)">
+                    <span>{{ item.description }}</span>
+                    @if (item.isMandatory) {
+                      <span class="mandatory-badge">Obligatorio</span>
+                    }
+                  </label>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="createArtifact()" [disabled]="!newArtifactForm.author">
+          Crear Artefacto
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Nueva Versión -->
+@if (showVersionModal) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Nueva Versión - {{ getTypeLabel(selectedArtifact!.type) }}</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          <strong>ℹ️ HU-010:</strong> Al crear una nueva versión, el sistema solicita la descripción de cambios.
+        </div>
+
+        <div class="form-group">
+          <label>Autor *</label>
+          <input type="text" [(ngModel)]="newVersionForm.author" class="form-control" placeholder="Nombre del autor">
+        </div>
+
+        <!-- HU-010: Campo de observaciones obligatorio -->
+        <div class="form-group">
+          <label>Descripción de cambios * <span class="required-hint">(Obligatorio)</span></label>
+          <textarea [(ngModel)]="newVersionForm.observations" class="form-control" rows="3" 
+                    placeholder="Describa los cambios realizados en esta versión..."
+                    [class.is-invalid]="!newVersionForm.observations.trim()"></textarea>
+          @if (!newVersionForm.observations.trim()) {
+            <small class="text-danger">La descripción de cambios es obligatoria</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Notas adicionales</label>
+          <textarea [(ngModel)]="newVersionForm.content" class="form-control" rows="2" 
+                    placeholder="Notas adicionales (opcional)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Archivo actualizado</label>
+          <input type="file" (change)="onFileSelected($event, 'version')" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="addVersion()" 
+                [disabled]="!newVersionForm.author || !newVersionForm.observations.trim()">
+          Agregar Versión
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Checklist de Cierre -->
+@if (showChecklistModal) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 Checklist de Criterios de Cierre</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="checklist-progress">
+          <div class="progress-stats">
+            <div class="stat">
+              <span class="stat-value">{{ getChecklistProgress() }}%</span>
+              <span class="stat-label">Completado General</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ getMandatoryChecklistProgress() }}%</span>
+              <span class="stat-label">Obligatorios Completados</span>
+            </div>
+          </div>
+          <div class="progress-bar-container large">
+            <div class="progress-bar" [style.width]="getMandatoryChecklistProgress() + '%'"></div>
+          </div>
+        </div>
+
+        <div class="checklist-items">
+          @for (item of closureChecklist; track item.id) {
+            <div class="checklist-item-detailed" [class.mandatory]="item.isMandatory" [class.completed]="item.isCompleted">
+              <div class="item-check">
+                <input type="checkbox" [checked]="item.isCompleted" (change)="toggleChecklistItem(item)">
+              </div>
+              <div class="item-content">
+                <span class="item-description">{{ item.description }}</span>
+                @if (item.isMandatory) {
+                  <span class="mandatory-badge">Obligatorio</span>
+                }
+                @if (item.isCompleted && item.completedDate) {
+                  <span class="completed-info">✓ Completado el {{ item.completedDate | date:'dd/MM/yyyy' }}</span>
+                }
+              </div>
+              <div class="item-notes">
+                <input type="text" [(ngModel)]="item.notes" placeholder="Notas..." class="notes-input">
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveChecklist()">
+          💾 Guardar Checklist
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Editar Build -->
+@if (showBuildModal) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📦 Información del Build Final</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Identificador del Build *</label>
+          <input type="text" [(ngModel)]="newArtifactForm.buildIdentifier" class="form-control" 
+                 placeholder="Ej: v1.0.0-release, build-2024-001">
+          <small class="form-help">Identificador único para esta versión del build</small>
+        </div>
+        <div class="form-group">
+          <label>URL de Descarga</label>
+          <input type="url" [(ngModel)]="newArtifactForm.buildDownloadUrl" class="form-control" 
+                 placeholder="https://github.com/releases/...">
+          <small class="form-help">Enlace directo para descargar los artefactos binarios</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveBuildInfo()">
+          💾 Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Validación de Cierre -->
+@if (showValidationModal && closureValidation) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header" [class.success]="closureValidation.canClose">
+        <h3>{{ closureValidation.canClose ? '✅ Validación Exitosa' : '⚠️ Validación de Cierre' }}</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        @if (closureValidation.canClose) {
+          <div class="validation-success">
+            <div class="success-icon">🎉</div>
+            <h4>¡El proyecto puede ser cerrado!</h4>
+            <p>Todos los requisitos obligatorios han sido cumplidos.</p>
+          </div>
+        } @else {
+          <div class="validation-warnings">
+            @if (closureValidation.missingArtifacts.length > 0) {
+              <div class="warning-section">
+                <h4>📄 Artefactos Faltantes</h4>
+                <ul>
+                  @for (artifact of closureValidation.missingArtifacts; track artifact) {
+                    <li>{{ artifact }}</li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (closureValidation.pendingApproval.length > 0) {
+              <div class="warning-section">
+                <h4>⏳ Pendientes de Aprobación</h4>
+                <ul>
+                  @for (item of closureValidation.pendingApproval; track item.typeName) {
+                    <li>{{ item.typeName }}</li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (!closureValidation.checklistValidation.isValid) {
+              <div class="warning-section">
+                <h4>📋 Items de Checklist Pendientes</h4>
+                <ul>
+                  @for (item of closureValidation.checklistValidation.pendingItems; track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="closeModals()">Entendido</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- HU-010: MODAL: Historial de Versiones -->
+@if (showHistoryModal && selectedArtifact) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📜 Historial de Versiones - {{ getTypeLabel(selectedArtifact.type) }}</h3>
+        <button class="btn-close" (click)="closeModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="history-actions">
+          <button class="btn btn-secondary" (click)="exportHistory()">
+            📥 Exportar Historial
+          </button>
+          
+          <!-- Comparar versiones -->
+          <div class="compare-section">
+            <span>Comparar:</span>
+            <select [(ngModel)]="selectedVersions.v1" class="form-control-sm">
+              <option [ngValue]="null">Versión 1</option>
+              @for (v of versionHistory; track v.id) {
+                <option [ngValue]="v.versionNumber">v{{ v.versionNumber }}</option>
+              }
+            </select>
+            <span>vs</span>
+            <select [(ngModel)]="selectedVersions.v2" class="form-control-sm">
+              <option [ngValue]="null">Versión 2</option>
+              @for (v of versionHistory; track v.id) {
+                <option [ngValue]="v.versionNumber">v{{ v.versionNumber }}</option>
+              }
+            </select>
+            <button class="btn btn-sm btn-info" (click)="compareVersions()" 
+                    [disabled]="!selectedVersions.v1 || !selectedVersions.v2">
+              🔍 Comparar
+            </button>
+          </div>
+        </div>
+
+        <div class="history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Versión</th>
+                <th>Autor</th>
+                <th>Fecha</th>
+                <th>Observaciones</th>
+                <th>Archivo</th>
+                <th>Tamaño</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (version of versionHistory; track version.id) {
+                <tr>
+                  <td><strong>v{{ version.versionNumber }}</strong></td>
+                  <td>{{ version.author }}</td>
+                  <td>{{ formatDate(version.createdAt) }}</td>
+                  <td class="observations-cell">{{ version.observations || '-' }}</td>
+                  <td>{{ version.originalFileName || '-' }}</td>
+                  <td>{{ formatFileSize(version.fileSize) }}</td>
+                  <td>
+                    @if (version.downloadUrl || version.originalFileName) {
+                      <button class="btn btn-sm btn-secondary" (click)="downloadVersion(version.versionNumber)">
+                        📥
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModals()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- HU-010: MODAL: Comparación de Versiones -->
+@if (showCompareModal && versionComparison) {
+  <div class="modal-overlay" (click)="showCompareModal = false">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🔍 Comparación de Versiones</h3>
+        <button class="btn-close" (click)="showCompareModal = false">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="comparison-grid">
+          <!-- Versión 1 -->
+          <div class="version-card">
+            <h4>v{{ versionComparison.version1.versionNumber }}</h4>
+            <div class="version-detail">
+              <p><strong>Autor:</strong> {{ versionComparison.version1.author }}</p>
+              <p><strong>Fecha:</strong> {{ formatDate(versionComparison.version1.createdAt) }}</p>
+              <p><strong>Archivo:</strong> {{ versionComparison.version1.originalFileName || 'N/A' }}</p>
+              <p><strong>Tamaño:</strong> {{ formatFileSize(versionComparison.version1.fileSize) }}</p>
+              <p><strong>Observaciones:</strong></p>
+              <div class="observations-box">{{ versionComparison.version1.observations || 'Sin observaciones' }}</div>
+            </div>
+          </div>
+
+          <!-- Versión 2 -->
+          <div class="version-card">
+            <h4>v{{ versionComparison.version2.versionNumber }}</h4>
+            <div class="version-detail">
+              <p><strong>Autor:</strong> {{ versionComparison.version2.author }}</p>
+              <p><strong>Fecha:</strong> {{ formatDate(versionComparison.version2.createdAt) }}</p>
+              <p><strong>Archivo:</strong> {{ versionComparison.version2.originalFileName || 'N/A' }}</p>
+              <p><strong>Tamaño:</strong> {{ formatFileSize(versionComparison.version2.fileSize) }}</p>
+              <p><strong>Observaciones:</strong></p>
+              <div class="observations-box">{{ versionComparison.version2.observations || 'Sin observaciones' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diferencias -->
+        <div class="differences-section">
+          <h4>📊 Diferencias Detectadas</h4>
+          <ul class="differences-list">
+            @for (diff of versionComparison.differences; track diff) {
+              <li>{{ diff }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showCompareModal = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
